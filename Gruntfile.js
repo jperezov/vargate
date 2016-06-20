@@ -4,6 +4,11 @@ module.exports = function(grunt) {
 
     var pkg = grunt.file.readJSON('package.json');
     var year = (new Date).getFullYear();
+    var headerComment = '/**!\n' +
+                        ' * <%= pkg.name %> v<%= pkg.version %>\n' +
+                        ' * Copyright (c) <%= year %> <%= pkg.author.name %>.\n' +
+                        ' * Licensed under the <%= pkg.license %> License.\n' +
+                        ' */\n';
 
     grunt.initConfig({
         pkg: pkg,
@@ -23,18 +28,17 @@ module.exports = function(grunt) {
                     // Avoid breaking semicolons inserted by r.js
                     skipSemiColonInsertion: true,
                     wrap: {
-                        start: "/**!\n * jPanel v<%= pkg.version %>\n * Copyright (c) 2015 Jonathan Perez.\n * Licensed under the MIT License.\n */\n(function() {\n    \"use strict\";\n",
+                        start: headerComment + "(function() {\n    \"use strict\";\n",
                         end: "}());"
                     },
                     rawText: {},
                     onBuildWrite: convert
-
                 }
             }
         },
         uglify: {
             options: {
-                banner: '/**!\n * VarGate v<%= pkg.version %>\n * Copyright (c) <%= year %> Jonathan Perez.\n * Licensed under the MIT License.\n */\n'
+                banner: headerComment
             },
             dist: {
                 files: {

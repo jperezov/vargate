@@ -38,5 +38,5 @@ into this
     // When waiting on multiple variables to meet specific conditions
     VarGate.when([['oneVar', '=== 7'], ['twoVar', ' > 4']], func);
     // When waiting on one variable to meet a specific condition (in this case, equaling another variable)
-    VarGate.when({oneVar: {cond: '=== twoVar', fn: func}});
+    VarGate.when([['oneVar', '=== twoVar']],  func);
 

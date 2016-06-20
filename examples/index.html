@@ -5,8 +5,9 @@
     <title>Title</title>
 </head>
 <body>
-<script src="vargate.js"></script>
+<script src="../vargate.js"></script>
 <script>
+    window.DEBUG_MODE = 'warn';
     var subGate = VarGate.register('submodule');
     subGate.when(['one', 'two', 'three'], function(one, two, three) {
         console.log('It works!', one, two, three);
@@ -19,13 +20,18 @@
         subGate.set('two', 2);
     }, 250);
     setTimeout(function() {
-        subGate.set('three', 2);
+        subGate.set('three', 3);
     }, 2150);
-    subGate.set('one', 1);
+    //subGate.set('one', 1);
     console.log('-------------- set one---------');
     var subSub = subGate.register('subsub');
-    subSub.set('one', 0);
+    //subSub.set('one', 0);
     console.log('-----------SHOULD ERROR------');
+    var grandChild = subSub.register('grandChild');
+    grandChild.set('string', 'ONEONEONEONEONE');
+    grandChild.when(['string', 'one', 'two', 'three'], function(string, one, two, three) {
+        console.log('SUCCESS!!!: ', string, one, two, three, arguments);
+    });
 </script>
 </body>
 </html>
