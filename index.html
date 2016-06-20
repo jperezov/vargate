@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="vargate.js"></script>
+<script>
+    var subGate = VarGate.register('submodule');
+    subGate.when(['one', 'two', 'three'], function(one, two, three) {
+        console.log('It works!', one, two, three);
+        console.log(one + two === three);
+    });
+    setTimeout(function() {
+        subGate.set('one', 1);
+    }, 400);
+    setTimeout(function() {
+        subGate.set('two', 2);
+    }, 250);
+    setTimeout(function() {
+        subGate.set('three', 2);
+    }, 2150);
+    subGate.set('one', 1);
+    console.log('-------------- set one---------');
+    var subSub = subGate.register('subsub');
+    subSub.set('one', 0);
+    console.log('-----------SHOULD ERROR------');
+</script>
+</body>
+</html>
