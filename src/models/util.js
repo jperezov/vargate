@@ -1,5 +1,9 @@
 define(function() {
     var util = {
+        /**
+         * Conditionally logs warnings or throws errors depending on the DEBUG_MODE setting.
+         * @param string
+         */
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
@@ -13,6 +17,10 @@ define(function() {
                     // do nothing
             }
         },
+        /**
+         * Generates a unique ID
+         * @returns {string}
+         */
         guid: (function() {
             var lut = [];
             for (var i = 0; i < 256; i ++) {

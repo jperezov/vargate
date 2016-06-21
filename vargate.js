@@ -7,6 +7,10 @@
     "use strict";
 
     var util = {
+        /**
+         * Conditionally logs warnings or throws errors depending on the DEBUG_MODE setting.
+         * @param string
+         */
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
@@ -20,6 +24,10 @@
                     // do nothing
             }
         },
+        /**
+         * Generates a unique ID
+         * @returns {string}
+         */
         guid: (function() {
             var lut = [];
             for (var i = 0; i < 256; i ++) {
@@ -51,7 +59,6 @@
         var data = {};
         var gate = {};
         var gateMap = {};
-        var callback = {};
         this.module = module;
         this.data = data; // todo: remove
         this.gate = gate; // todo: remove
@@ -92,7 +99,9 @@
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
             var namespace = this.module + '.' + util.guid();
-            if (vars.length && typeof vars !== 'string') {
+            if (parent) {
+                parent.when.call(this, vars, fn, context);
+            } else  if (vars.length && typeof vars !== 'string') {
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -114,7 +123,7 @@
          */
         this.set = function(key, val) {
             // Grab the namespaced key
-            var realKey = this.module === self.module? this.module + '.' + key : key;
+            var realKey = this.module === self.module? this.module + '.' + key : arguments[2];
             if (parent) {
                 if (typeof parent.get(key) !== 'undefined') {
                     // Not allowing sub-modules to name variables already defined in the parent.
@@ -122,11 +131,10 @@
                     util.throw('In "' + this.module + '" variable "' + key + '" defined in module "'
                         + parent.module + '". Choose a different name.');
                 }
-                parent.set.call(this, realKey, val, key);
+                parent.set.call(this, key, val, realKey);
             } else {
-                data[realKey] = this.data[key] = val;
-                // arguments[2] contains the original key if this came from a child module
-                this.unlock(arguments[2] || key);
+                data[realKey] = this.data[realKey] = val;
+                this.unlock(key);
             }
         };
         /**
@@ -146,40 +154,43 @@
                 return data[this.module + '.' + key];
             }
         };
+        /**
+         * Unlocks a given key
+         * @param {string} key
+         */
         this.unlock = function(key) {
-            if (typeof gateMap[key] === 'object') {
+            if (parent) {
+                parent.unlock.call(this, key);
+            } else if (typeof gateMap[key] === 'object') {
                 for (var namespace in gateMap[key].namespace) {
                     if (! gateMap[key].namespace.hasOwnProperty(namespace)) continue;
                     var gateObj = gate[namespace];
                     var conditions = gateObj.cond;
                     var count = 0;
-                    var cond, c;
+                    var cond, c, left, right;
                     for (cond in conditions) {
                         if (! conditions.hasOwnProperty(cond)) continue;
-                        c = conditions[cond];
                         try {
-                            if (eval(this.get(cond) + ' ' + c.operator  + ' ' + c.val)) {
+                            c = conditions[cond];
+                            left = gateObj.module.get(cond);
+                            right = c.val.toString().match(/^%\w+%$/) ? this.get(c.val.replace(/%/g, '')) : c.val;
+                            if (eval('left ' + c.operator  + ' ' + right)) {
                                 count ++;
                             }
                         } catch (e) {
-                            try {
-                                if(eval(JSON.stringify(this.get(cond)) + ' ' + c.operator + ' ' + JSON.stringify(c.val))) {
-                                    console.log('stringified');
-                                    console.log(JSON.stringify(this.get(cond)) + conditions[cond]);
-                                    count ++;
-                                }
-                            } catch (e) {
-                                util.throw(e);
-                            }
+                            util.throw(e);
                         }
                     }
                     if (count === gateObj.vars.length) {
-                        console.log('should run the function ', gateObj.fn);
+                        var args = [];
+                        for (var i = 0; i < gateObj.vars.length; i ++) {
+                            args.push(gateObj.module.get(gateObj.vars[i]));
+                        }
                         if (gateObj.fn.length && gateObj.fn[0]) {
                             // do something when persisting
-                            gateObj.fn[1].apply(gateObj.context, getArguments(gateObj.vars));
+                            gateObj.fn[1].apply(gateObj.context, args);
                         } else {
-                            gateObj.fn.apply(gateObj.context, getArguments(gateObj.vars));
+                            gateObj.fn.apply(gateObj.context, args);
                             // Remove future callbacks of this function if not persistent
                             for (cond in conditions) {
                                 if (! conditions.hasOwnProperty(cond)) continue;
@@ -198,29 +209,22 @@
         //================+
         // Helper Functions
         //================+
-        function getArguments(arr) {
-            var retArr = [];
-            for (var i = 0; i < arr.length; i ++) {
-                console.log('getting ->',self.get(arr[i]));
-                retArr.push(self.get(arr[i]));
-            }
-            return retArr;
-        }
         /**
-         *
+         * Sets up the gate and gateMap to fire the provided callback when the conditions are met.
          * @param namespace
          * @param prop
          * @param fn
          * @param context
          */
         function addCallback(namespace, prop, fn, context) {
-            var key, val, operator, errorMessage;
+            var key, val, operator;
             if (typeof gate[namespace] === 'undefined') {
                 // Define the property if this is the first time--otherwise re-use the old definition
                 gate[namespace] = {
                     vars: [],
                     cond: {},
                     fn: fn,
+                    module: this,
                     context: context
                 };
             }
@@ -228,13 +232,14 @@
                 key = prop[0];
                 operator = prop[1];
                 val = prop[2];
-                errorMessage = 'Invalid number of arguments passed through: ['
-                    + prop.join(',') + '] (should be [key, operator, condition])';
+                if (prop.length !== 3) {
+                    util.throw('Invalid number of arguments passed through: ['
+                        + prop.join(',') + '] (should be [key, operator, condition])');
+                }
             } else {
                 key = prop;
                 operator = '!==';
                 val = 'undefined';
-                errorMessage = 'Cannot set "' + JSON.stringify(prop) + '" as a property';
             }
             try {
                 gate[namespace].vars.push(key);
@@ -251,7 +256,7 @@
                 gateMap[key].namespace[namespace] = false;
                 gateMap[key].deps ++;
             } catch (e) {
-                util.throw(errorMessage);
+                util.throw('Cannot set "' + JSON.stringify(prop) + '" as a property');
             }
         }
     }
