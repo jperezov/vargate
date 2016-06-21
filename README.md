@@ -1,6 +1,10 @@
 ### VarGate
 
-VarGate is an async library designed around data instead of files. It turns this
+VarGate is an async library designed around data instead of files.
+ 
+### Overview
+
+Think of VarGate as RequireJS for variables instead of files. It turns this:
 
     // jQuery used for brevity. This is not a jQuery library
     var someVar, anotherVar, aThirdVar;
@@ -16,7 +20,7 @@ VarGate is an async library designed around data instead of files. It turns this
             console.log("I have some " + someVar + ", as well as some " + anotherVar + " and " + aThirdVar + ".");
         });
 
-into this
+into this:
 
     VarGate.when(['someVar', 'anotherVar', 'aThirdVar'], function(someVar, anotherVar, aThirdVar) {
         console.log("I have some " + someVar + ", as well as some " + anotherVar + " and " + aThirdVar + ".");
@@ -33,10 +37,24 @@ into this
     
 ### Usage
 
-    // When waiting on multiple variables to be defined
-    VarGate.when(['oneVar', 'twoVar'], func);
-    // When waiting on multiple variables to meet specific conditions
-    VarGate.when([['oneVar', '===',  7], ['twoVar', '>', 4]], func);
-    // When waiting on one variable to meet a specific condition (in this case, equaling another variable)
-    VarGate.when([['oneVar', '===', 'twoVar']],  func);
+`VarGate` is compatible with AMD, ES6, and CommonJS modules. When no modules are present, it is exported to `window.VarGate`.
 
+When waiting on multiple variables to be defined
+
+    VarGate.when(['oneVar', 'twoVar'], func);
+    
+When waiting on multiple variables to meet specific conditions
+
+    VarGate.when([['oneVar', '===',  7], ['twoVar', '>', 4]], func);
+
+When waiting on one variable to meet a specific condition (in this case, equaling another variable)
+
+    VarGate.when([['oneVar', '===', '%twoVar%']],  func); // Not sure if this works, so don't rely on this yet
+
+You can namespace sub-modules to avoid name conflicts
+
+    var subGate = VarGate.register('subgate');
+    subGate.set('someVar', someValue');
+    var otherGate = VarGate.register('othergate');
+    otherGate.set('someVar', anotherValue);
+    console.log(subGate.get('someVar') == otherGate.get('someVar')); // prints `false`
