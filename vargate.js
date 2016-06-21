@@ -1,5 +1,5 @@
 /**!
- * VarGate v0.1.0
+ * vargate v0.1.0
  * Copyright (c)  Jonathan Perez.
  * Licensed under the MIT License.
  */
