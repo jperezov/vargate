@@ -49,7 +49,11 @@ Think of VarGate as RequireJS for variables instead of files. It turns this:
 
 into this:
 
-    VarGate.when(['someVar', 'anotherVar', 'aThirdVar'], function(someVar, anotherVar, aThirdVar) {
+    VarGate.when([
+        'someVar',
+        'anotherVar',
+        'aThirdVar'
+    ], function(someVar, anotherVar, aThirdVar) {
         console.log("I have some " + someVar + ", as well as some " + anotherVar + " and " + aThirdVar + ".");
     });
     $.get('/some-endpoint', function(resp) {
