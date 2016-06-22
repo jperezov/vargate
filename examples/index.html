@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script>
+        window.DEV_MODE = 'strict';
+        window.DEBUG_MODE = 'minimal';
+    </script>
 </head>
 <body>
 <script src="../vargate.js"></script>
 <script>
-    window.DEBUG_MODE = 'warn';
     var subGate = VarGate.register('submodule');
     subGate.when(['one', 'two', ['three', '===', 3]], function(one, two, three) {
         console.log('It works!', one, two, three);

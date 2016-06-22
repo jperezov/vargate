@@ -1,5 +1,5 @@
 /**!
- * vargate v0.4.0
+ * vargate v0.5.0
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -14,12 +14,28 @@
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
-            switch (window.DEBUG_MODE) {
+            switch (window.DEV_MODE) {
                 case 'warn':
                     console.warn(message);
                     break;
                 case 'strict':
                     throw message;
+                default:
+                    // do nothing
+            }
+        },
+        log: function(string, important) {
+            var message = 'VarGate SG1 Log: ' + string;
+            switch (window.DEBUG_MODE) {
+                case 'verbose':
+                    console.info(message);
+                    break;
+                case 'trace':
+                    console.trace(message);
+                    break;
+                case 'minimal':
+                    if (important) console.info(message);
+                    break;
                 default:
                     // do nothing
             }
@@ -59,9 +75,18 @@
         var data = {};
         var gate = {};
         var gateMap = {};
+        var subKeyWaitCount = 0;
         this.module = module;
-        this.data = data;
-        this.children = children;
+        if (window.DEV_MODE) {
+            (function(self) {
+                self.parent = parent;
+                self.children = children;
+                self.data = data;
+                self.gate = gate;
+                self.gateMap = gateMap;
+                self.subKeyWaitCount = subKeyWaitCount;
+            })(this);
+        }
         /**
          * Registers a child module, which will be able to access, but not set,
          * the data available for this module.
@@ -69,13 +94,15 @@
          * @returns {VarGate}
          */
         this.register = function(module) {
+            var sourceChildren = arguments[1] || children;
             var namespacedModule = this.module === self.module ? self.module + '.' + module : module;
             if (parent) {
                 // All modules should be registered with the top-level parent
-                return parent.register.call(this, namespacedModule);
+                return parent.register.call(this, namespacedModule, sourceChildren);
             }
+            util.log('Registering "' + namespacedModule + '"');
             // This ensures parents are properly associated with nested modules *and* the top-level parent
-            children[namespacedModule] = this.children[namespacedModule] = new VarGate(namespacedModule, this);
+            children[namespacedModule] = sourceChildren[namespacedModule] = new VarGate(namespacedModule, this);
             return children[namespacedModule];
         };
         /**
@@ -84,6 +111,7 @@
          * @returns {VarGate}
          */
         this.new = function(module) {
+            util.log('Creating new "' + module + '"');
             return new VarGate(module);
         };
         /**
@@ -110,6 +138,7 @@
             if (parent) {
                 parent.when.call(this, vars, fn, context);
             } else  if (vars.length && typeof vars !== 'string') {
+                util.log('Waiting in "' + this.module + '" for [' + vars.join(',') + ']');
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -117,6 +146,7 @@
                 }
                 this.unlock(vars[0]);
             } else {
+                util.log('Waiting in "' + this.module + '" for "' + vars + '"');
                 addCallback.call(this, namespace, vars, fn, context);
                 // Try to see if this should already execute
                 this.unlock(vars);
@@ -130,22 +160,24 @@
          * @param {*} val
          */
         this.set = function(key, val) {
+            var sourceData = arguments[2] || data;
             // Grab the namespaced key
-            var realKey = this.module === self.module? this.module + '.' + key : arguments[2];
+            var sourceKey = this.module === self.module? this.module + '.' + key : arguments[3];
             var subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
-                children[this.module + '.' + subKey[0]].set(subKey.splice(1).join('.'));
-            } if (parent) {
+                children[this.module + '.' + subKey[0]].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
+            } else if (parent) {
                 if (typeof parent.get(key) !== 'undefined') {
                     // Not allowing sub-modules to name variables already defined in the parent.
                     // Things get weird when expecting a variable defined in two places.
                     util.throw('In "' + this.module + '" variable "' + key + '" defined in module "'
                         + parent.module + '". Choose a different name.');
                 }
-                parent.set.call(this, key, val, realKey);
+                parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
-                data[realKey] = this.data[realKey] = val;
+                data[sourceKey] = sourceData[sourceKey] = val;
+                util.log('Set "' + sourceKey + '" to value "' + val + '".', true);
                 this.unlock(key);
             }
         };
@@ -169,8 +201,10 @@
          * @param {string} key
          */
         this.unlock = function(key) {
+            var unlockingSubmodule = arguments[1];
+            var skipSubKeyCheck = arguments[2];
             if (parent) {
-                parent.unlock.call(this, key);
+                parent.unlock.call(this, key, unlockingSubmodule, skipSubKeyCheck);
             } else if (typeof gateMap[key] === 'object') {
                 for (var namespace in gateMap[key].namespace) {
                     if (! gateMap[key].namespace.hasOwnProperty(namespace)) continue;
@@ -192,6 +226,7 @@
                         }
                     }
                     if (count === gateObj.vars.length) {
+                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.module + '".');
                         var args = [];
                         for (var i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
@@ -206,12 +241,23 @@
                                 if (! conditions.hasOwnProperty(cond)) continue;
                                 delete gateMap[cond].namespace[namespace];
                                 gateMap[cond].deps --;
+                                if (cond.indexOf('.') !== -1) {
+                                    subKeyWaitCount --;
+                                }
                                 if (gateMap[cond].deps === 0) {
                                     delete gateMap[cond];
                                 }
                             }
                             delete gate[namespace];
                         }
+                    }
+                }
+            } else if (subKeyWaitCount && ! skipSubKeyCheck) {
+                for (var gateKey in gateMap) {
+                    if (! gateMap.hasOwnProperty(gateKey)) continue;
+                    var split = gateKey.split('.');
+                    if (split && split.length && split[split.length - 1] === key) {
+                        self.unlock(gateKey, true, true);
                     }
                 }
             }
@@ -268,8 +314,11 @@
                         namespace: {}
                     };
                 }
-                gateMap[key].namespace[namespace] = false;
+                gateMap[key].namespace[namespace] = true;
                 gateMap[key].deps ++;
+                if (key.indexOf('.') !== -1) {
+                    subKeyWaitCount ++;
+                }
             } catch (e) {
                 util.throw('Cannot set "' + JSON.stringify(prop) + '" as a property');
             }

@@ -7,12 +7,28 @@ define(function() {
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
-            switch (window.DEBUG_MODE) {
+            switch (window.DEV_MODE) {
                 case 'warn':
                     console.warn(message);
                     break;
                 case 'strict':
                     throw message;
+                default:
+                    // do nothing
+            }
+        },
+        log: function(string, important) {
+            var message = 'VarGate SG1 Log: ' + string;
+            switch (window.DEBUG_MODE) {
+                case 'verbose':
+                    console.info(message);
+                    break;
+                case 'trace':
+                    console.trace(message);
+                    break;
+                case 'minimal':
+                    if (important) console.info(message);
+                    break;
                 default:
                     // do nothing
             }
