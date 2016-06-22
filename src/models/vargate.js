@@ -14,11 +14,8 @@ define([
         var gate = {};
         var gateMap = {};
         this.module = module;
-        this.data = data; // todo: remove
-        this.gate = gate; // todo: remove
-        this.gateMap = gateMap; // todo: remove
+        this.data = data;
         this.children = children;
-        this.parent = parent; // todo: remove
         /**
          * Registers a child module, which will be able to access, but not set,
          * the data available for this module.
@@ -42,6 +39,17 @@ define([
          */
         this.new = function(module) {
             return new VarGate(module);
+        };
+        /**
+         * Shorthand notation for `VarGate.when(vars, [fn, true], context)`.
+         * Creates a `when` listener that triggers whenever a `set` occurs
+         * and the conditions for `vars` evaluate to true.
+         * @param {string|Array} vars
+         * @param {function} fn
+         * @param {object} context
+         */
+        this.on = function(vars, fn, context) {
+            this.when(vars, [fn, true], context);
         };
         /**
          * Executes a given function when data is set or meets a condition.

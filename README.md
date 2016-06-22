@@ -89,6 +89,10 @@ When waiting on one variable to meet a specific condition (in this case, equalin
     
 Functions will only run once. To run a function every time data is changed, use the following:
 
+    VarGate.on('someVar', func); // Will run every time `someVar` is set
+    
+This is just short-hand for the following:
+
     VarGate.when('someVar', [func, true]); // Will run every time `someVar` is set
     VarGate.when([['someVar', '===', 3]], [func, true]); // Will run every time `someVar` is set to 3
     VarGate.when(['someVar', 'anotherVar'], [func, true]); // Will run every time `someVar` and `anotherVar` are set
