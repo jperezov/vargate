@@ -78,7 +78,11 @@ define([
         this.set = function(key, val) {
             // Grab the namespaced key
             var realKey = this.module === self.module? this.module + '.' + key : arguments[2];
-            if (parent) {
+            var subKey = key.split('.');
+            if (subKey && subKey.length > 1) {
+                // Allow parent to set data for submodules
+                children[this.module + '.' + subKey[0]].set(subKey.splice(1).join('.'));
+            } if (parent) {
                 if (typeof parent.get(key) !== 'undefined') {
                     // Not allowing sub-modules to name variables already defined in the parent.
                     // Things get weird when expecting a variable defined in two places.
@@ -124,11 +128,11 @@ define([
                     var cond, c, left, right;
                     for (cond in conditions) {
                         if (! conditions.hasOwnProperty(cond)) continue;
+                        c = conditions[cond];
+                        left = gateObj.module.get(cond);
+                        right = (c.val && c.val.toString().match(/^@\w+$/)) ? gateObj.module.get(c.val.slice(1)) : c.val;
                         try {
-                            c = conditions[cond];
-                            left = gateObj.module.get(cond);
-                            right = c.val.toString().match(/^%\w+%$/) ? this.get(c.val.replace(/%/g, '')) : c.val;
-                            if (eval('left ' + c.operator  + ' ' + right)) {
+                            if (eval('left ' + c.operator  + ' right')) {
                                 count ++;
                             }
                         } catch (e) {
@@ -165,12 +169,13 @@ define([
         //================+
         /**
          * Sets up the gate and gateMap to fire the provided callback when the conditions are met.
-         * @param namespace
-         * @param prop
-         * @param fn
-         * @param context
+         * @param {string} namespace
+         * @param {string|Array} prop
+         * @param {function|Array} fn
+         * @param {*} context
+         * @param {boolean} [stop]
          */
-        function addCallback(namespace, prop, fn, context) {
+        function addCallback(namespace, prop, fn, context, stop) {
             var key, val, operator;
             if (typeof gate[namespace] === 'undefined') {
                 // Define the property if this is the first time--otherwise re-use the old definition
@@ -179,21 +184,25 @@ define([
                     cond: {},
                     fn: fn,
                     module: this,
-                    context: context
+                    context: context || this
                 };
             }
             if (prop.length && typeof prop !== 'string') {
-                key = prop[0];
-                operator = prop[1];
-                val = prop[2];
                 if (prop.length !== 3) {
                     util.throw('Invalid number of arguments passed through: ['
                         + prop.join(',') + '] (should be [key, operator, condition])');
                 }
+                key = prop[0];
+                operator = prop[1];
+                val = prop[2];
+                if ((val && val.toString().match(/^@\w+$/)) && stop !== true) {
+                    // We're comparing two values--reverse and re-add to watch for both values
+                    addCallback(namespace, [val.slice(1), operator, '@' + key], fn, context, true);
+                }
             } else {
                 key = prop;
                 operator = '!==';
-                val = 'undefined';
+                val = undefined;
             }
             try {
                 gate[namespace].vars.push(key);

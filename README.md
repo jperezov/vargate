@@ -1,6 +1,33 @@
 ### VarGate
 
 VarGate is an async library designed around data instead of files.
+
+### Including VarGate
+
+#### Browser
+
+    <script src="path/to/vargate.min.js"></script>
+    
+VarGate is now available via `window.VarGate`.
+
+
+#### Node
+
+Run `npm install vargate --save-dev`.
+
+If using ES6:
+
+    import VarGate from "vargate";
+
+CommonJS:
+
+    var VarGate = require('vargate');
+    
+AMD:
+
+    define(['vargate'], function(VarGate) {
+    
+    });
  
 ### Overview
 
@@ -37,7 +64,12 @@ into this:
     
 ### Usage
 
-`VarGate` is compatible with AMD, ES6, and CommonJS modules. When no modules are present, it is exported to `window.VarGate`.
+When developing, it is recommended to set `window.DEBUG_MODE` to log errors into the console.
+
+    window.DEBUG_MODE = 'strict'; // Errors will stop execution. Recommended for local development.
+    window.DEBUG_MODE = 'warn';   // Errors will log, but execution will continue. Recommended for staging environments.
+
+Without setting window.DEBUG_MODE, errors will be ignored, as it is assumed you are in a production environment.
 
 When waiting on multiple variables to be defined
 
@@ -49,7 +81,7 @@ When waiting on multiple variables to meet specific conditions
 
 When waiting on one variable to meet a specific condition (in this case, equaling another variable)
 
-    VarGate.when([['oneVar', '===', '%twoVar%']],  func); // Not sure if this works, so don't rely on this yet
+    VarGate.when([['oneVar', '===', '@twoVar']],  func);
 
 You can namespace sub-modules to avoid name conflicts
 
@@ -58,3 +90,17 @@ You can namespace sub-modules to avoid name conflicts
     var otherGate = VarGate.register('othergate');
     otherGate.set('someVar', anotherValue);
     console.log(subGate.get('someVar') == otherGate.get('someVar')); // prints `false`
+    
+The parent can get and set values for its children
+
+    VarGate.set('subgate.value', anotherValue);
+    VarGate.get('othergate.someVar');
+
+Sub-modules can _only_ `get` values from the parent
+
+    VarGate.set('value', 1);
+    var subGate = VarGate.register('subgate');
+    subGate.get('value'); // returns 1
+    subGate.set('value', 3); // will error out if window.DEBUG_MODE = 'strict'
+    subGate.get('value'); // returns 3
+    VarGate.get('value'); // returns 1
