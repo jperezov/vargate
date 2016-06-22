@@ -1,6 +1,6 @@
 /**!
- * vargate v0.2.0
- * Copyright (c)  Jonathan Perez.
+ * vargate v0.3.0
+ * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
 (function() {
@@ -148,12 +148,10 @@
          */
         this.get = function(key) {
             var subModuleData = data[self.module + '.' + key];
-            if (parent) {
-                if (typeof subModuleData !== 'undefined') {
-                    return subModuleData;
-                } else {
-                    return parent.get.call(this, key);
-                }
+            if (typeof subModuleData !== 'undefined') {
+                return subModuleData;
+            } else if (parent) {
+                return parent.get.call(this, key);
             } else {
                 return data[this.module + '.' + key];
             }
@@ -190,9 +188,9 @@
                         for (var i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
                         }
-                        if (gateObj.fn.length && gateObj.fn[0]) {
+                        if (gateObj.fn.length && gateObj.fn[1]) {
                             // do something when persisting
-                            gateObj.fn[1].apply(gateObj.context, args);
+                            gateObj.fn[0].apply(gateObj.context, args);
                         } else {
                             gateObj.fn.apply(gateObj.context, args);
                             // Remove future callbacks of this function if not persistent

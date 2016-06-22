@@ -73,7 +73,7 @@ When developing, it is recommended to set `window.DEBUG_MODE` to log errors into
     window.DEBUG_MODE = 'strict'; // Errors will stop execution. Recommended for local development.
     window.DEBUG_MODE = 'warn';   // Errors will log, but execution will continue. Recommended for staging environments.
 
-Without setting window.DEBUG_MODE, errors will be ignored, as it is assumed you are in a production environment.
+Without setting `window.DEBUG_MODE`, errors will be ignored, as it is assumed you are in a production environment.
 
 When waiting on multiple variables to be defined
 
@@ -86,6 +86,12 @@ When waiting on multiple variables to meet specific conditions
 When waiting on one variable to meet a specific condition (in this case, equaling another variable)
 
     VarGate.when([['oneVar', '===', '@twoVar']],  func);
+    
+Functions will only run once. To run a function every time data is changed, use the following:
+
+    VarGate.when('someVar', [func, true]); // Will run every time `someVar` is set
+    VarGate.when([['someVar', '===', 3]], [func, true]); // Will run every time `someVar` is set to 3
+    VarGate.when(['someVar', 'anotherVar'], [func, true]); // Will run every time `someVar` and `anotherVar` are set
 
 You can namespace sub-modules to avoid name conflicts
 
