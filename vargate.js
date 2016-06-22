@@ -1,5 +1,5 @@
 /**!
- * vargate v0.5.0
+ * vargate v0.5.1
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -77,7 +77,7 @@
         var gateMap = {};
         var subKeyWaitCount = 0;
         this.module = module;
-        if (window.DEV_MODE) {
+        if (window.DEBUG_MODE === 'trace') {
             (function(self) {
                 self.parent = parent;
                 self.children = children;
