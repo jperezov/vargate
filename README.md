@@ -1,4 +1,5 @@
 ### VarGate
+[![npm version](https://img.shields.io/npm/v/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate) [![npm downloads](https://img.shields.io/npm/dm/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate) [![Known Vulnerabilities](https://snyk.io/test/github/jperezov/vargate/badge.svg)](https://snyk.io/test/github/jperezov/vargate)
 
 VarGate is an async library designed around data instead of files.
 
@@ -7,9 +8,8 @@ VarGate is an async library designed around data instead of files.
 #### Browser
 
     <script src="path/to/vargate.min.js"></script>
-    
-VarGate is now available via `window.VarGate`.
 
+VarGate is now available via `window.VarGate`.
 
 #### Node
 
@@ -22,13 +22,13 @@ If using ES6:
 CommonJS:
 
     var VarGate = require('vargate');
-    
+
 AMD:
 
     define(['vargate'], function(VarGate) {
-    
+
     });
- 
+
 ### Overview
 
 Think of VarGate as RequireJS for variables instead of files. It turns this:
@@ -65,7 +65,7 @@ into this:
     $.get('/a-third-endpoint', function(resp) {
         VarGate.set('aThirdVar', resp.data);
     });
-    
+
 ### Usage
 
 When developing, it is recommended to set `window.DEBUG_MODE` and `window.DEV_MODE`.
@@ -79,22 +79,26 @@ When developing, it is recommended to set `window.DEBUG_MODE` and `window.DEV_MO
 Without setting `window.DEV_MODE`, errors will be ignored, as it is assumed you are in a production environment.
 Likewise, not setting `window.DEBUG_MODE` will silence the log statements from VarGate.
 
+When waiting on a single variable to be defined
+
+    VarGate.when('oneVar', func);
+
 When waiting on multiple variables to be defined
 
     VarGate.when(['oneVar', 'twoVar'], func);
-    
-When waiting on multiple variables to meet specific conditions
+
+When waiting on multiple variables to meet specific conditions, follow the convention `[key, operator, value]`
 
     VarGate.when([['oneVar', '===',  7], ['twoVar', '>', 4]], func);
 
 When waiting on one variable to meet a specific condition (in this case, equaling another variable)
 
     VarGate.when([['oneVar', '===', '@twoVar']],  func);
-    
+
 Functions will only run once. To run a function every time data is changed, use the following:
 
     VarGate.on('someVar', func); // Will run every time `someVar` is set
-    
+
 This is just short-hand for the following:
 
     VarGate.when('someVar', [func, true]); // Will run every time `someVar` is set
@@ -106,9 +110,9 @@ You can namespace sub-modules to avoid name conflicts
     var subGate = VarGate.register('subgate');
     subGate.set('someVar', someValue');
     var otherGate = VarGate.register('othergate');
-    otherGate.set('someVar', anotherValue);
+    otherGate.set('someVar', anotherValue); // will error out if window.DEV_MODE == 'strict'
     console.log(subGate.get('someVar') == otherGate.get('someVar')); // prints `false`
-    
+
 The parent can get and set values for its children
 
     VarGate.set('subgate.value', anotherValue);
@@ -119,6 +123,6 @@ Sub-modules can _only_ `get` values from the parent
     VarGate.set('value', 1);
     var subGate = VarGate.register('subgate');
     subGate.get('value'); // returns 1
-    subGate.set('value', 3); // will error out if window.DEBUG_MODE = 'strict'
+    subGate.set('value', 3); // will error out if window.DEV_MODE == 'strict'
     subGate.get('value'); // returns 3
     VarGate.get('value'); // returns 1
