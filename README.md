@@ -1,5 +1,5 @@
 ### VarGate
-[![npm version](https://img.shields.io/npm/v/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate) [![npm downloads](https://img.shields.io/npm/dm/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate) [![Known Vulnerabilities](https://snyk.io/test/github/jperezov/vargate/badge.svg)](https://snyk.io/test/github/jperezov/vargate)
+[![npm version](https://img.shields.io/npm/v/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate) [![npm downloads](https://img.shields.io/npm/dm/vargate.svg?style=flat-square)](https://www.npmjs.com/package/vargate)
 
 VarGate is an async library designed around data instead of files.
 
