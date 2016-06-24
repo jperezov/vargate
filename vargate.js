@@ -59,7 +59,6 @@
                     }
                 } catch (e) {
                     // Looks like we can't log anything
-                    console.log(e);
                 }
             }
         },
