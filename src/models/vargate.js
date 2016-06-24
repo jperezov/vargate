@@ -75,8 +75,8 @@ define([
             var namespace = this.module + '.' + util.guid();
             if (parent) {
                 parent.when.call(this, vars, fn, context);
-            } else  if (vars.length && typeof vars !== 'string') {
-                util.log('Waiting in "' + this.module + '" for [' + vars.join(',') + ']');
+            } else if (vars.length && typeof vars !== 'string') {
+                util.log(['Waiting in "' + this.module + '" for', vars]);
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -84,7 +84,7 @@ define([
                 }
                 this.unlock(vars[0]);
             } else {
-                util.log('Waiting in "' + this.module + '" for "' + vars + '"');
+                util.log(['Waiting in "' + this.module + '" for', vars]);
                 addCallback.call(this, namespace, vars, fn, context);
                 // Try to see if this should already execute
                 this.unlock(vars);
@@ -115,7 +115,7 @@ define([
                 parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
-                util.log('Set "' + sourceKey + '" to value "' + val + '".', true);
+                util.log(['Set "' + sourceKey + '" to value', val], true);
                 this.unlock(key);
             }
         };

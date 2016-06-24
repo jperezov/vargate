@@ -9,7 +9,11 @@ define(function() {
             var message = 'VarGate Error: ' + string;
             switch (window.DEV_MODE) {
                 case 'warn':
-                    console.warn(message);
+                    try {
+                        console.warn(message);
+                    } catch (e) {
+                        // Looks like we can't warn anyone
+                    }
                     break;
                 case 'strict':
                     throw message;
@@ -17,20 +21,39 @@ define(function() {
                     // do nothing
             }
         },
-        log: function(string, important) {
-            var message = 'VarGate SG1 Log: ' + string;
-            switch (window.DEBUG_MODE) {
-                case 'verbose':
-                    console.info(message);
-                    break;
-                case 'trace':
-                    console.trace(message);
-                    break;
-                case 'minimal':
-                    if (important) console.info(message);
-                    break;
-                default:
-                    // do nothing
+        /**
+         *
+         * @param {*} message
+         * @param {boolean} [important]
+         */
+        log: function(message, important) {
+            var prefix = 'VarGate SG1 Log:';
+            var args = [];
+            if (window.DEBUG_MODE) {
+                if (typeof message !== 'string' && message.length) {
+                    args = message;
+                } else {
+                    args.push(message);
+                }
+                args.unshift(prefix);
+                try {
+                    switch (window.DEBUG_MODE) {
+                        case 'verbose':
+                            console.info.apply(console, args);
+                            break;
+                        case 'trace':
+                            console.trace.apply(console, args);
+                            break;
+                        case 'minimal':
+                            if (important) console.info.apply(console, args);
+                            break;
+                        default:
+                        // do nothing
+                    }
+                } catch (e) {
+                    // Looks like we can't log anything
+                    console.log(e);
+                }
             }
         },
         /**

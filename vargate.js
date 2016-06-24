@@ -1,5 +1,5 @@
 /**!
- * vargate v0.5.3
+ * vargate v0.5.4
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -16,7 +16,11 @@
             var message = 'VarGate Error: ' + string;
             switch (window.DEV_MODE) {
                 case 'warn':
-                    console.warn(message);
+                    try {
+                        console.warn(message);
+                    } catch (e) {
+                        // Looks like we can't warn anyone
+                    }
                     break;
                 case 'strict':
                     throw message;
@@ -24,20 +28,39 @@
                     // do nothing
             }
         },
-        log: function(string, important) {
-            var message = 'VarGate SG1 Log: ' + string;
-            switch (window.DEBUG_MODE) {
-                case 'verbose':
-                    console.info(message);
-                    break;
-                case 'trace':
-                    console.trace(message);
-                    break;
-                case 'minimal':
-                    if (important) console.info(message);
-                    break;
-                default:
-                    // do nothing
+        /**
+         *
+         * @param {*} message
+         * @param {boolean} [important]
+         */
+        log: function(message, important) {
+            var prefix = 'VarGate SG1 Log:';
+            var args = [];
+            if (window.DEBUG_MODE) {
+                if (typeof message !== 'string' && message.length) {
+                    args = message;
+                } else {
+                    args.push(message);
+                }
+                args.unshift(prefix);
+                try {
+                    switch (window.DEBUG_MODE) {
+                        case 'verbose':
+                            console.info.apply(console, args);
+                            break;
+                        case 'trace':
+                            console.trace.apply(console, args);
+                            break;
+                        case 'minimal':
+                            if (important) console.info.apply(console, args);
+                            break;
+                        default:
+                        // do nothing
+                    }
+                } catch (e) {
+                    // Looks like we can't log anything
+                    console.log(e);
+                }
             }
         },
         /**
@@ -137,8 +160,8 @@
             var namespace = this.module + '.' + util.guid();
             if (parent) {
                 parent.when.call(this, vars, fn, context);
-            } else  if (vars.length && typeof vars !== 'string') {
-                util.log('Waiting in "' + this.module + '" for [' + vars.join(',') + ']');
+            } else if (vars.length && typeof vars !== 'string') {
+                util.log(['Waiting in "' + this.module + '" for', vars]);
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -146,7 +169,7 @@
                 }
                 this.unlock(vars[0]);
             } else {
-                util.log('Waiting in "' + this.module + '" for "' + vars + '"');
+                util.log(['Waiting in "' + this.module + '" for', vars]);
                 addCallback.call(this, namespace, vars, fn, context);
                 // Try to see if this should already execute
                 this.unlock(vars);
@@ -177,7 +200,7 @@
                 parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
-                util.log('Set "' + sourceKey + '" to value "' + val + '".', true);
+                util.log(['Set "' + sourceKey + '" to value', val], true);
                 this.unlock(key);
             }
         };
