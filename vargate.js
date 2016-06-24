@@ -1,5 +1,5 @@
 /**!
- * vargate v0.5.4
+ * vargate v0.5.5
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -8,7 +8,7 @@
 
     var util = {
         /**
-         * Conditionally logs warnings or throws errors depending on the DEBUG_MODE setting.
+         * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
          * @param string
          */
         throw: function(string) {
@@ -29,7 +29,7 @@
             }
         },
         /**
-         *
+         * Conditionally logs messages to help debug based on the value of DEBUG_MODE
          * @param {*} message
          * @param {boolean} [important]
          */
@@ -46,13 +46,13 @@
                 try {
                     switch (window.DEBUG_MODE) {
                         case 'verbose':
-                            console.info.apply(console, args);
-                            break;
-                        case 'trace':
                             console.trace.apply(console, args);
                             break;
+                        case 'static':
+                            console.trace.apply(console, JSON.parse(JSON.stringify(args)));
+                            break;
                         case 'minimal':
-                            if (important) console.info.apply(console, args);
+                            if (important) console.trace.apply(console, args);
                             break;
                         default:
                         // do nothing
@@ -99,7 +99,7 @@
         var gateMap = {};
         var subKeyWaitCount = 0;
         this.module = module;
-        if (window.DEBUG_MODE === 'trace') {
+        if (window.DEBUG_MODE === 'verbose') {
             (function(self) {
                 self.parent = parent;
                 self.children = children;

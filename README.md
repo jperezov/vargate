@@ -72,8 +72,8 @@ When developing, it is recommended to set `window.DEBUG_MODE` and `window.DEV_MO
 
     window.DEV_MODE = 'strict'; // Errors will stop execution. Recommended for local development.
     window.DEV_MODE = 'warn';   // Errors will log, but execution will continue. Recommended for staging environments.
-    window.DEBUG_MODE = 'trace'; // Will log the trace of every action
-    window.DEBUG_MODE = 'verbose'; // Will log every action
+    window.DEBUG_MODE = 'verbose'; // Will log the trace of every action
+    window.DEBUG_MODE = 'static'; // Same as verbose, but prints a static copy of the values passed through
     window.DEBUG_MODE = 'minimal'; // Will only log `VarGate.set` actions
 
 Without setting `window.DEV_MODE`, errors will be ignored, as it is assumed you are in a production environment.

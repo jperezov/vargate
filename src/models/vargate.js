@@ -15,7 +15,7 @@ define([
         var gateMap = {};
         var subKeyWaitCount = 0;
         this.module = module;
-        if (window.DEBUG_MODE === 'trace') {
+        if (window.DEBUG_MODE === 'verbose') {
             (function(self) {
                 self.parent = parent;
                 self.children = children;

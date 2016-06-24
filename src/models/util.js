@@ -1,7 +1,7 @@
 define(function() {
     var util = {
         /**
-         * Conditionally logs warnings or throws errors depending on the DEBUG_MODE setting.
+         * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
          * @param string
          */
         throw: function(string) {
@@ -22,7 +22,7 @@ define(function() {
             }
         },
         /**
-         *
+         * Conditionally logs messages to help debug based on the value of DEBUG_MODE
          * @param {*} message
          * @param {boolean} [important]
          */
@@ -39,13 +39,13 @@ define(function() {
                 try {
                     switch (window.DEBUG_MODE) {
                         case 'verbose':
-                            console.info.apply(console, args);
-                            break;
-                        case 'trace':
                             console.trace.apply(console, args);
                             break;
+                        case 'static':
+                            console.trace.apply(console, JSON.parse(JSON.stringify(args)));
+                            break;
                         case 'minimal':
-                            if (important) console.info.apply(console, args);
+                            if (important) console.trace.apply(console, args);
                             break;
                         default:
                         // do nothing
