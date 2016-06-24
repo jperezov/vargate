@@ -105,6 +105,11 @@ This is just short-hand for the following:
     VarGate.when([['someVar', '===', 3]], [func, true]); // Will run every time `someVar` is set to 3
     VarGate.when(['someVar', 'anotherVar'], [func, true]); // Will run every time `someVar` and `anotherVar` are set
 
+To un-set a variable, just do `VarGate.set('someVar')`, which will set the variable to `undefined`. Of course, it's always better to be explicit:
+
+    VarGate.unset('someVar'); // Actually sets `someVar = undefined`
+
+
 You can namespace sub-modules to avoid name conflicts
 
     var subGate = VarGate.register('subgate');

@@ -1,7 +1,7 @@
 {
   "name": "vargate",
   "private": false,
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Async Javascript library for code that should only run after data becomes available.",
   "author": {
     "name": "Jonathan Perez",

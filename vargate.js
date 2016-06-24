@@ -1,5 +1,5 @@
 /**!
- * vargate v0.5.2
+ * vargate v0.5.3
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -180,6 +180,13 @@
                 util.log('Set "' + sourceKey + '" to value "' + val + '".', true);
                 this.unlock(key);
             }
+        };
+        /**
+         * Shorthand to explicitly set a value to undefined.
+         * @param {string} key
+         */
+        this.unset = function(key) {
+            return this.set(key);
         };
         /**
          * Gets the data for a given key from the appropriate module

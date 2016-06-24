@@ -120,6 +120,13 @@ define([
             }
         };
         /**
+         * Shorthand to explicitly set a value to undefined.
+         * @param {string} key
+         */
+        this.unset = function(key) {
+            return this.set(key);
+        };
+        /**
          * Gets the data for a given key from the appropriate module
          * @param {string} key
          * @returns {*}
