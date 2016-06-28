@@ -105,9 +105,7 @@ This is just short-hand for the following:
     VarGate.when([['someVar', '===', 3]], [func, true]); // Will run every time `someVar` is set to 3
     VarGate.when(['someVar', 'anotherVar'], [func, true]); // Will run every time `someVar` and `anotherVar` are set
 
-To un-set a variable, just do `VarGate.set('someVar')`, which will set the variable to `undefined`. Of course, it's always better to be explicit:
-
-    VarGate.unset('someVar'); // Actually sets `someVar = undefined`
+To un-set a variable, just do `VarGate.unset('someVar')`, which will set the variable to `undefined`.
 
 
 You can namespace sub-modules to avoid name conflicts
@@ -131,3 +129,11 @@ Sub-modules can _only_ `get` values from the parent
     subGate.set('value', 3); // will error out if window.DEV_MODE == 'strict'
     subGate.get('value'); // returns 3
     VarGate.get('value'); // returns 1
+
+To override a value set in a parent module, use the `override` function:
+
+    var subGate = VarGate.register('subgate');
+    VarGate.set('val', 3);
+    subGate.override('val', 'ten'); // will not error out!
+    subGate.get('val'); // returns 'ten'
+    VarGate.get('val'); // returns 3

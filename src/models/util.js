@@ -1,4 +1,5 @@
 define(function() {
+    var squelch = false;
     var util = {
         /**
          * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
@@ -54,6 +55,18 @@ define(function() {
                     // Looks like we can't log anything
                 }
             }
+        },
+        /**
+         * Used to squelch the log / throw functions. This allows existing functions to be re-used
+         * when creating explicit functions to override expected behaviors.
+         * @param {boolean} [bool]
+         * @returns {boolean}
+         */
+        squelch: function(bool) {
+            if (typeof bool === 'boolean') {
+                squelch = bool;
+            }
+            return squelch;
         },
         /**
          * Generates a unique ID

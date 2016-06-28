@@ -1,11 +1,12 @@
 /**!
- * vargate v0.5.5
+ * vargate v0.6.0
  * Copyright (c) 2016 Jonathan Perez.
  * Licensed under the MIT License.
  */
 (function() {
     "use strict";
 
+    var squelch = false;
     var util = {
         /**
          * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
@@ -61,6 +62,18 @@
                     // Looks like we can't log anything
                 }
             }
+        },
+        /**
+         * Used to squelch the log / throw functions. This allows existing functions to be re-used
+         * when creating explicit functions to override expected behaviors.
+         * @param {boolean} [bool]
+         * @returns {boolean}
+         */
+        squelch: function(bool) {
+            if (typeof bool === 'boolean') {
+                squelch = bool;
+            }
+            return squelch;
         },
         /**
          * Generates a unique ID
@@ -190,25 +203,37 @@
                 // Allow parent to set data for submodules
                 children[this.module + '.' + subKey[0]].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
             } else if (parent) {
-                if (typeof parent.get(key) !== 'undefined') {
-                    // Not allowing sub-modules to name variables already defined in the parent.
-                    // Things get weird when expecting a variable defined in two places.
-                    util.throw('In "' + this.module + '" variable "' + key + '" defined in module "'
-                        + parent.module + '". Choose a different name.');
-                }
+                checkDefined.call(this, key);
                 parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
+                checkValue.call(this, key, val);
                 util.log(['Set "' + sourceKey + '" to value', val], true);
                 this.unlock(key);
             }
+        };
+        /**
+         * Used to override a key set by the parent within a given module.
+         * Will not throw a warning or error, as this is explicitly meant to be an override.
+         * @param {string} key
+         * @param {*} val
+         */
+        this.override = function(key, val) {
+            checkValue.call(this, key, val);
+            util.squelch(true);
+            this.set(key, val);
+            util.squelch(false);
         };
         /**
          * Shorthand to explicitly set a value to undefined.
          * @param {string} key
          */
         this.unset = function(key) {
-            return this.set(key);
+            checkDefined.call(this, key);
+            util.squelch(true);
+            var ret = this.set(key);
+            util.squelch(false);
+            return ret;
         };
         /**
          * Gets the data for a given key from the appropriate module
@@ -350,6 +375,31 @@
                 }
             } catch (e) {
                 util.throw('Cannot set "' + JSON.stringify(prop) + '" as a property');
+            }
+        }
+        /**
+         * Used to prevent the user from setting a value to `undefined` without explicitly calling `unset`.
+         * Only works when `window.DEV_MODE` is 'strict' or 'warn'
+         * @param {string} key
+         * @param {*} val
+         */
+        function checkValue(key, val) {
+            if (typeof val === 'undefined' && ! util.squelch()) {
+                util.throw('"' + key + '" set to `undefined`. Was this intentional?' +
+                    ' Use `unset("' + key + '")` if it was.');
+            }
+        }
+        /**
+         * Used to prevent users from overriding a key without using a function meant to explicitly do so.
+         * Only works when `window.DEV_MODE` is 'strict' or 'warn'
+         * @param {string} key
+         */
+        function checkDefined(key) {
+            if (! data[this.module + '.' + key] && typeof parent.get(key) !== 'undefined' && ! util.squelch()) {
+                // Not allowing sub-modules to name variables already defined in the parent (unless using override).
+                // Things get weird when expecting a variable defined in two places.
+                util.throw('In "' + this.module + '" variable "' + key + '" defined in module "'
+                    + parent.module + '". Choose a different name.');
             }
         }
     }
