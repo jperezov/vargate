@@ -154,6 +154,38 @@ define([
             }
         };
         /**
+         * Clears all data for the current module
+         */
+        this.clear = function() {
+            var dataArr = self.module === this.module ? data : arguments[0];
+            if (parent) {
+                parent.clear.call(this, dataArr);
+            } else {
+                var keyRegex = new RegExp('^' + this.module + '\\.[^\\.]*$');
+                for (var key in dataArr) {
+                    // Clear data for the module
+                    if (dataArr.hasOwnProperty(key) && key.match(keyRegex)) {
+                        delete dataArr[key];
+                        // Clear data for the top-level parent
+                        if (data.hasOwnProperty(key)) {
+                            delete data[key];
+                        }
+                    }
+                }
+            }
+        };
+        /**
+         * Clears all data for the current module and all sub-modules
+         */
+        this.clearAll = function() {
+            this.clear();
+            for (var child in children) {
+                if (children.hasOwnProperty(child)) {
+                    children[child].clearAll();
+                }
+            }
+        };
+        /**
          * Unlocks a given key
          * @param {string} key
          */
@@ -163,6 +195,7 @@ define([
             if (parent) {
                 parent.unlock.call(this, key, unlockingSubmodule, skipSubKeyCheck);
             } else if (typeof gateMap[key] === 'object') {
+                var valRegex = /^@\w+$/;
                 for (var namespace in gateMap[key].namespace) {
                     if (! gateMap[key].namespace.hasOwnProperty(namespace)) continue;
                     var gateObj = gate[namespace];
@@ -173,7 +206,7 @@ define([
                         if (! conditions.hasOwnProperty(cond)) continue;
                         c = conditions[cond];
                         left = gateObj.module.get(cond);
-                        right = (c.val && c.val.toString().match(/^@\w+$/)) ? gateObj.module.get(c.val.slice(1)) : c.val;
+                        right = (c.val && c.val.toString().match(valRegex)) ? gateObj.module.get(c.val.slice(1)) : c.val;
                         try {
                             if (eval('left ' + c.operator  + ' right')) {
                                 count ++;

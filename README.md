@@ -98,15 +98,14 @@ When waiting on one variable to meet a specific condition (in this case, equalin
 Functions will only run once. To run a function every time data is changed, use the following:
 
     VarGate.on('someVar', func); // Will run every time `someVar` is set
-
-This is just short-hand for the following:
-
-    VarGate.when('someVar', [func, true]); // Will run every time `someVar` is set
-    VarGate.when([['someVar', '===', 3]], [func, true]); // Will run every time `someVar` is set to 3
-    VarGate.when(['someVar', 'anotherVar'], [func, true]); // Will run every time `someVar` and `anotherVar` are set
+    VarGate.on([['someVar', '===', 3]], func); // Will run every time `someVar` is set to 3
+    VarGate.on(['someVar', 'anotherVar'], on); // Will run every time `someVar` and `anotherVar` are set
 
 To un-set a variable, just do `VarGate.unset('someVar')`, which will set the variable to `undefined`.
 
+To clear all data in a given module, use `VarGate.clear()`. Note that this will not clear sub-modules.
+
+To clear all data in a given module, _as well as all sub-modules_, use `VarGate.clearAll()`.
 
 You can namespace sub-modules to avoid name conflicts
 
