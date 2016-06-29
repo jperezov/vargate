@@ -111,7 +111,7 @@ You can namespace sub-modules to avoid name conflicts
 
     var subGate = VarGate.register('subgate');
     subGate.set('someVar', someValue');
-    var otherGate = VarGate.register('othergate');
+    var otherGate = subGate.register('othergate');
     otherGate.set('someVar', anotherValue); // will error out if window.DEV_MODE == 'strict'
     console.log(subGate.get('someVar') == otherGate.get('someVar')); // prints `false`
 
