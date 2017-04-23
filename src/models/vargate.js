@@ -38,7 +38,7 @@ define([
                 // All modules should be registered with the top-level parent
                 return parent.register.call(this, namespacedModule, sourceChildren);
             }
-            util.log('Registering "' + namespacedModule + '"');
+            util.log('Registering "' + namespacedModule + '"', true);
             // This ensures parents are properly associated with nested modules *and* the top-level parent
             children[namespacedModule] = sourceChildren[namespacedModule] = new VarGate(namespacedModule, this);
             return children[namespacedModule];
@@ -49,7 +49,7 @@ define([
          * @returns {VarGate}
          */
         this.new = function(module) {
-            util.log('Creating new "' + module + '"');
+            util.log('Creating new "' + module + '"', true);
             return new VarGate(module);
         };
         /**
@@ -76,7 +76,7 @@ define([
             if (parent) {
                 parent.when.call(this, vars, fn, context);
             } else if (vars.length && typeof vars !== 'string') {
-                util.log(['Waiting in "' + this.module + '" for', vars]);
+                util.log(['Waiting in "' + this.module + '" for', vars], true);
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -84,7 +84,7 @@ define([
                 }
                 this.unlock(vars[0]);
             } else {
-                util.log(['Waiting in "' + this.module + '" for', vars]);
+                util.log(['Waiting in "' + this.module + '" for', vars], true);
                 addCallback.call(this, namespace, vars, fn, context);
                 // Try to see if this should already execute
                 this.unlock(vars);
@@ -111,7 +111,7 @@ define([
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
                 checkValue.call(this, key, val);
-                util.log(['Set "' + sourceKey + '" to value', val], true);
+                util.log(['Set "' + sourceKey + '" to value', val]);
                 this.unlock(key);
             }
         };
@@ -216,7 +216,7 @@ define([
                         }
                     }
                     if (count === gateObj.vars.length) {
-                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.module + '".');
+                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.module + '".', true);
                         var args = [];
                         for (var i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
