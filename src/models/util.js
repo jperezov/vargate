@@ -1,5 +1,6 @@
 define(function() {
     var squelch = false;
+    //noinspection UnnecessaryLocalVariableJS
     var util = {
         /**
          * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
