@@ -93,7 +93,6 @@ define([
         /**
          * Sets a value for a given key within the current module.
          * Cannot overwrite keys set for the parent module.
-         * todo: Fix an issue that will arise when the parent sets a key *after* the child does.
          * @param {string} key
          * @param {*} val
          */
