@@ -1,5 +1,6 @@
 define(function() {
     var squelch = false;
+    //noinspection UnnecessaryLocalVariableJS
     var util = {
         /**
          * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
@@ -11,7 +12,7 @@ define(function() {
             switch (window.DEV_MODE) {
                 case 'warn':
                     try {
-                        console.warn(message);
+                        console.error(message);
                     } catch (e) {
                         // Looks like we can't warn anyone
                     }
@@ -40,13 +41,13 @@ define(function() {
                 try {
                     switch (window.DEBUG_MODE) {
                         case 'verbose':
-                            console.trace.apply(console, args);
+                            console.warn.apply(console, args);
                             break;
                         case 'static':
-                            console.trace.apply(console, JSON.parse(JSON.stringify(args)));
+                            console.warn.apply(console, JSON.parse(JSON.stringify(args)));
                             break;
                         case 'minimal':
-                            if (important) console.trace.apply(console, args);
+                            if (important) console.warn.apply(console, args);
                             break;
                         default:
                         // do nothing
@@ -77,12 +78,11 @@ define(function() {
             for (var i = 0; i < 256; i ++) {
                 lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
             }
-            var t = Math.random() + 1;
             return function() {
-                var d0 = t * Math.random() * 0xffffffff | 0;
-                var d1 = t * Math.random() * 0xffffffff | 0;
-                var d2 = t * Math.random() * 0xffffffff | 0;
-                var d3 = t * Math.random() * 0xffffffff | 0;
+                var d0 = Math.random() * 0xffffffff | 0;
+                var d1 = Math.random() * 0xffffffff | 0;
+                var d2 = Math.random() * 0xffffffff | 0;
+                var d3 = Math.random() * 0xffffffff | 0;
                 return lut[d0 & 0xff] + lut[d0 >> 8 & 0xff] + lut[d0 >> 16 & 0xff] + lut[d0 >> 24 & 0xff] + '-' +
                     lut[d1 & 0xff] + lut[d1 >> 8 & 0xff] + '-' + lut[d1 >> 16 & 0x0f | 0x40] + lut[d1 >> 24 & 0xff] + '-' +
                     lut[d2 & 0x3f | 0x80] + lut[d2 >> 8 & 0xff] + '-' + lut[d2 >> 16 & 0xff] + lut[d2 >> 24 & 0xff] +

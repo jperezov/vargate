@@ -3,18 +3,18 @@ define([
 ], function(util) {
     /**
      * VarGate constructor
-     * @param {string} module
+     * @param {string} moduleName
      * @param {VarGate} [parent]
      * @constructor
      */
-    function VarGate(module, parent) {
+    function VarGate(moduleName, parent) {
         var self = this;
         var children = {};
         var data = {};
         var gate = {};
         var gateMap = {};
         var subKeyWaitCount = 0;
-        this.module = module;
+        this.moduleName = moduleName;
         if (window.DEBUG_MODE === 'verbose') {
             (function(self) {
                 self.parent = parent;
@@ -33,12 +33,12 @@ define([
          */
         this.register = function(module) {
             var sourceChildren = arguments[1] || children;
-            var namespacedModule = this.module === self.module ? self.module + '.' + module : module;
+            var namespacedModule = this.moduleName === self.moduleName ? self.moduleName + '.' + module : module;
             if (parent) {
                 // All modules should be registered with the top-level parent
                 return parent.register.call(this, namespacedModule, sourceChildren);
             }
-            util.log('Registering "' + namespacedModule + '"');
+            util.log('Registering "' + namespacedModule + '"', true);
             // This ensures parents are properly associated with nested modules *and* the top-level parent
             children[namespacedModule] = sourceChildren[namespacedModule] = new VarGate(namespacedModule, this);
             return children[namespacedModule];
@@ -49,7 +49,7 @@ define([
          * @returns {VarGate}
          */
         this.new = function(module) {
-            util.log('Creating new "' + module + '"');
+            util.log('Creating new "' + module + '"', true);
             return new VarGate(module);
         };
         /**
@@ -72,11 +72,11 @@ define([
          */
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
-            var namespace = this.module + '.' + util.guid();
+            var namespace = this.moduleName + '.' + util.guid();
             if (parent) {
                 parent.when.call(this, vars, fn, context);
             } else if (vars.length && typeof vars !== 'string') {
-                util.log(['Waiting in "' + this.module + '" for', vars]);
+                util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
                     addCallback.call(this, namespace, vars[v], fn, context);
@@ -84,7 +84,7 @@ define([
                 }
                 this.unlock(vars[0]);
             } else {
-                util.log(['Waiting in "' + this.module + '" for', vars]);
+                util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
                 addCallback.call(this, namespace, vars, fn, context);
                 // Try to see if this should already execute
                 this.unlock(vars);
@@ -100,18 +100,18 @@ define([
         this.set = function(key, val) {
             var sourceData = arguments[2] || data;
             // Grab the namespaced key
-            var sourceKey = this.module === self.module? this.module + '.' + key : arguments[3];
+            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : arguments[3];
             var subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
-                children[this.module + '.' + subKey[0]].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
+                children[this.moduleName + '.' + subKey[0]].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
             } else if (parent) {
                 checkDefined.call(this, key);
                 parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
                 checkValue.call(this, key, val);
-                util.log(['Set "' + sourceKey + '" to value', val], true);
+                util.log(['Set "' + sourceKey + '" to value', val]);
                 this.unlock(key);
             }
         };
@@ -144,24 +144,24 @@ define([
          * @returns {*}
          */
         this.get = function(key) {
-            var subModuleData = data[self.module + '.' + key];
+            var subModuleData = data[self.moduleName + '.' + key];
             if (typeof subModuleData !== 'undefined') {
                 return subModuleData;
             } else if (parent) {
                 return parent.get.call(this, key);
             } else {
-                return data[this.module + '.' + key];
+                return data[this.moduleName + '.' + key];
             }
         };
         /**
          * Clears all data for the current module
          */
         this.clear = function() {
-            var dataArr = self.module === this.module ? data : arguments[0];
+            var dataArr = self.moduleName === this.moduleName ? data : arguments[0];
             if (parent) {
                 parent.clear.call(this, dataArr);
             } else {
-                var keyRegex = new RegExp('^' + this.module + '\\.[^\\.]*$');
+                var keyRegex = new RegExp('^' + this.moduleName + '\\.[^\\.]*$');
                 for (var key in dataArr) {
                     // Clear data for the module
                     if (dataArr.hasOwnProperty(key) && key.match(keyRegex)) {
@@ -216,7 +216,7 @@ define([
                         }
                     }
                     if (count === gateObj.vars.length) {
-                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.module + '".');
+                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.moduleName + '".', true);
                         var args = [];
                         for (var i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
@@ -331,11 +331,13 @@ define([
          * @param {string} key
          */
         function checkDefined(key) {
-            if (! data[this.module + '.' + key] && typeof parent.get(key) !== 'undefined' && ! util.squelch()) {
+            //noinspection JSPotentiallyInvalidUsageOfThis
+            if (! data[this.moduleName + '.' + key] && typeof parent.get(key) !== 'undefined' && ! util.squelch()) {
                 // Not allowing sub-modules to name variables already defined in the parent (unless using override).
                 // Things get weird when expecting a variable defined in two places.
-                util.throw('In "' + this.module + '" variable "' + key + '" defined in module "'
-                    + parent.module + '". Choose a different name.');
+                //noinspection JSPotentiallyInvalidUsageOfThis
+                util.throw('In "' + this.moduleName + '" variable "' + key + '" defined in module "'
+                    + parent.moduleName + '". Choose a different name.');
             }
         }
     }
