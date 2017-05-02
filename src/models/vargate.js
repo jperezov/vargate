@@ -224,7 +224,6 @@ define([
                             // do something when persisting
                             gateObj.fn[0].apply(gateObj.context, args);
                         } else {
-                            gateObj.fn.apply(gateObj.context, args);
                             // Remove future callbacks of this function if not persistent
                             for (cond in conditions) {
                                 if (! conditions.hasOwnProperty(cond)) continue;
@@ -238,6 +237,7 @@ define([
                                 }
                             }
                             delete gate[namespace];
+                            gateObj.fn.apply(gateObj.context, args);
                         }
                     }
                 }
