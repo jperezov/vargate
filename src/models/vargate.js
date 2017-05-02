@@ -58,7 +58,7 @@ define([
          * and the conditions for `vars` evaluate to true.
          * @param {string|Array} vars
          * @param {function} fn
-         * @param {object} context
+         * @param {Object} context
          */
         this.on = function(vars, fn, context) {
             this.when(vars, [fn, true], context);
@@ -68,7 +68,7 @@ define([
          * Executes immediately if conditions have already been met.
          * @param {string|Array} vars
          * @param {function} fn
-         * @param {object} context
+         * @param {Object} context
          */
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
@@ -93,7 +93,6 @@ define([
         /**
          * Sets a value for a given key within the current module.
          * Cannot overwrite keys set for the parent module.
-         * todo: Fix an issue that will arise when the parent sets a key *after* the child does.
          * @param {string} key
          * @param {*} val
          */
@@ -225,7 +224,6 @@ define([
                             // do something when persisting
                             gateObj.fn[0].apply(gateObj.context, args);
                         } else {
-                            gateObj.fn.apply(gateObj.context, args);
                             // Remove future callbacks of this function if not persistent
                             for (cond in conditions) {
                                 if (! conditions.hasOwnProperty(cond)) continue;
@@ -239,6 +237,7 @@ define([
                                 }
                             }
                             delete gate[namespace];
+                            gateObj.fn.apply(gateObj.context, args);
                         }
                     }
                 }
