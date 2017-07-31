@@ -277,10 +277,10 @@ define([
             }
             if (Array.isArray(prop)) {
                 if (prop.length === 2) {
-                    key = prop[1].replace(/\./g, '-') + ':' + util.guid();
+                    key = util.guid() + ':' + prop[1].replace(/\./g, '-');
                     operator = '!==';
                     val = undefined;
-                    assignNestedPropertyListener(prop[0], prop[1].replace(/^\w+\./, ''), key, context);
+                    assignNestedPropertyListener(prop[0], prop[1], key, context);
                 } else if (prop.length === 3) {
                     key = prop[0];
                     operator = prop[1];

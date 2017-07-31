@@ -1,5 +1,5 @@
 /**!
- * vargate v0.7.3
+ * vargate v0.8.1
  * Copyright (c) 2017 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -374,10 +374,10 @@
             }
             if (Array.isArray(prop)) {
                 if (prop.length === 2) {
-                    key = prop[1].replace(/\./g, '-') + ':' + util.guid();
+                    key = util.guid() + ':' + prop[1].replace(/\./g, '-');
                     operator = '!==';
                     val = undefined;
-                    assignNestedPropertyListener(prop[0], prop[1].replace(/^\w+\./, ''), key, context);
+                    assignNestedPropertyListener(prop[0], prop[1], key, context);
                 } else if (prop.length === 3) {
                     key = prop[0];
                     operator = prop[1];
