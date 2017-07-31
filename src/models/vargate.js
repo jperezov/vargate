@@ -79,13 +79,13 @@ define([
                 util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
                 for (var v in vars) {
                     if (! vars.hasOwnProperty(v)) continue;
-                    addCallback.call(this, namespace, vars[v], fn, context);
+                    addCallback.call(this, namespace, vars[v], fn, context || this);
                     // Try to see if this should already execute
                 }
                 this.unlock(vars[0]);
             } else {
                 util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
-                addCallback.call(this, namespace, vars, fn, context);
+                addCallback.call(this, namespace, vars, fn, context || this);
                 // Try to see if this should already execute
                 this.unlock(vars);
             }
@@ -264,6 +264,7 @@ define([
          */
         function addCallback(namespace, prop, fn, context, stop) {
             var key, val, operator;
+            context = context || this;
             if (typeof gate[namespace] === 'undefined') {
                 // Define the property if this is the first time--otherwise re-use the old definition
                 gate[namespace] = {
@@ -271,20 +272,26 @@ define([
                     cond: {},
                     fn: fn,
                     module: this,
-                    context: context || this
+                    context: context
                 };
             }
-            if (prop.length && typeof prop !== 'string') {
-                if (prop.length !== 3) {
+            if (Array.isArray(prop)) {
+                if (prop.length === 2) {
+                    key = prop[1].replace(/\./g, '-') + ':' + util.guid();
+                    operator = '!==';
+                    val = undefined;
+                    assignNestedPropertyListener(prop[0], prop[1].replace(/^\w+\./, ''), key, context);
+                } else if (prop.length === 3) {
+                    key = prop[0];
+                    operator = prop[1];
+                    val = prop[2];
+                    if ((val && val.toString().match(/^@\w+$/)) && stop !== true) {
+                        // We're comparing two values--reverse and re-add to watch for both values
+                        addCallback(namespace, [val.slice(1), operator, '@' + key], fn, context, true);
+                    }
+                } else {
                     util.throw('Invalid number of arguments passed through: ['
                         + prop.join(',') + '] (should be [key, operator, condition])');
-                }
-                key = prop[0];
-                operator = prop[1];
-                val = prop[2];
-                if ((val && val.toString().match(/^@\w+$/)) && stop !== true) {
-                    // We're comparing two values--reverse and re-add to watch for both values
-                    addCallback(namespace, [val.slice(1), operator, '@' + key], fn, context, true);
                 }
             } else {
                 key = prop;
@@ -337,6 +344,36 @@ define([
                 //noinspection JSPotentiallyInvalidUsageOfThis
                 util.throw('In "' + this.moduleName + '" variable "' + key + '" defined in module "'
                     + parent.moduleName + '". Choose a different name.');
+            }
+        }
+        /**
+         * Listens and marks when a property is available
+         * @param {Object} object
+         * @param {string} key
+         * @param {string} fullKey
+         * @param {VarGate} context
+         */
+        function assignNestedPropertyListener(object, key, fullKey, context) {
+            var pathArray = key.split('.');
+            if (pathArray.length === 1 && typeof key === 'string') {
+                // Sanitize `key`
+                key = key.replace(/[^\w$]/g, '');
+                if (object[key] === undefined) {
+                    // Create a watch on the property, and run once it's been set
+                    Object.defineProperty(object, key, {
+                        configurable: true,
+                        set: function(val) {
+                            delete object[key];
+                            object[key] = val;
+                            context.set(fullKey, object);
+                        }
+                    });
+                } else {
+                    // The property's already been defined. Trigger it.
+                    context.set(fullKey, object);
+                }
+            } else {
+                assignNestedPropertyListener(object[pathArray[0]], pathArray.splice(1).join('.'), fullKey, context);
             }
         }
     }

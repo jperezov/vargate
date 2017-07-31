@@ -117,6 +117,12 @@ When waiting on one variable to meet a specific condition (in this case, equalin
 VarGate.when([['oneVar', '===', '@twoVar']],  func);
 ```
 
+When waiting on the nested property of a variable to be defined:
+
+```javascript
+VarGate.when([[someObject, 'someObject.someProperty']],  func); //note: this will return `someObject` in the callback
+```
+
 Functions will only run once. To run a function every time data is changed, use the following:
 
 ```javascript
