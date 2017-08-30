@@ -29,8 +29,8 @@ module.exports = function(grunt) {
                     // Avoid breaking semicolons inserted by r.js
                     skipSemiColonInsertion: true,
                     wrap: {
-                        start: headerComment + "(function() {\n    \"use strict\";\n",
-                        end: "}());"
+                        start: headerComment + "(function(window) {\n    \"use strict\";\n",
+                        end: "}(typeof window !== 'undefined' ? window : this));"
                     },
                     rawText: {},
                     onBuildWrite: convert
