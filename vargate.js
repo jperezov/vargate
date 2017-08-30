@@ -1,9 +1,9 @@
 /**!
- * vargate v0.8.1
+ * vargate v0.8.2
  * Copyright (c) 2017 Jonathan Perez.
  * Licensed under the MIT License.
  */
-(function() {
+(function(window) {
     "use strict";
 
     var squelch = false;
@@ -488,4 +488,4 @@
         window.VarGate = Gate;
     }
 
-}());
+}(typeof window !== 'undefined' ? window : this));
