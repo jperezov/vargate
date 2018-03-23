@@ -1,6 +1,6 @@
 /**!
- * vargate v0.8.2
- * Copyright (c) 2017 Jonathan Perez.
+ * vargate v0.8.3
+ * Copyright (c) 2018 Jonathan Perez.
  * Licensed under the MIT License.
  */
 (function(window) {
@@ -16,7 +16,7 @@
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
-            switch (window.DEV_MODE) {
+            switch (window['DEV_MODE']) {
                 case 'warn':
                     try {
                         console.error(message);
@@ -33,12 +33,12 @@
         /**
          * Conditionally logs messages to help debug based on the value of DEBUG_MODE
          * @param {*} message
-         * @param {boolean} [important]
+         * @param {boolean=} important
          */
         log: function(message, important) {
             var prefix = 'VarGate SG1 Log:';
             var args = [];
-            if (window.DEBUG_MODE) {
+            if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
                     args = message;
                 } else {
@@ -46,7 +46,7 @@
                 }
                 args.unshift(prefix);
                 try {
-                    switch (window.DEBUG_MODE) {
+                    switch (window['DEBUG_MODE']) {
                         case 'verbose':
                             console.warn.apply(console, args);
                             break;
@@ -67,7 +67,7 @@
         /**
          * Used to squelch the log / throw functions. This allows existing functions to be re-used
          * when creating explicit functions to override expected behaviors.
-         * @param {boolean} [bool]
+         * @param {boolean=} bool
          * @returns {boolean}
          */
         squelch: function(bool) {
@@ -112,7 +112,7 @@
         var gateMap = {};
         var subKeyWaitCount = 0;
         this.moduleName = moduleName;
-        if (window.DEBUG_MODE === 'verbose') {
+        if (window['DEBUG_MODE'] === 'verbose') {
             (function(self) {
                 self.parent = parent;
                 self.children = children;
@@ -192,11 +192,13 @@
          * Cannot overwrite keys set for the parent module.
          * @param {string} key
          * @param {*} val
+         * @param {Object=} contextualData
+         * @param {string=} contextualKey
          */
-        this.set = function(key, val) {
-            var sourceData = arguments[2] || data;
+        this.set = function(key, val, contextualData, contextualKey) {
+            var sourceData = contextualData || data;
             // Grab the namespaced key
-            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : arguments[3];
+            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : contextualKey;
             var subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
@@ -251,9 +253,10 @@
         };
         /**
          * Clears all data for the current module
+         * @param {Object=} [contextualData]
          */
-        this.clear = function() {
-            var dataArr = self.moduleName === this.moduleName ? data : arguments[0];
+        this.clear = function(contextualData) {
+            var dataArr = self.moduleName === this.moduleName ? data : contextualData;
             if (parent) {
                 parent.clear.call(this, dataArr);
             } else {
@@ -355,8 +358,8 @@
          * Sets up the gate and gateMap to fire the provided callback when the conditions are met.
          * @param {string} namespace
          * @param {string|Array} prop
-         * @param {function|Array} fn
-         * @param {*} context
+         * @param {Function|Array} fn
+         * @param {Object} context
          * @param {boolean} [stop]
          */
         function addCallback(namespace, prop, fn, context, stop) {
@@ -448,7 +451,7 @@
          * @param {Object} object
          * @param {string} key
          * @param {string} fullKey
-         * @param {VarGate} context
+         * @param {Object} context
          */
         function assignNestedPropertyListener(object, key, fullKey, context) {
             var pathArray = key.split('.');

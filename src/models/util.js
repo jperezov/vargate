@@ -9,7 +9,7 @@ define(function() {
         throw: function(string) {
             // Namespace the message
             var message = 'VarGate Error: ' + string;
-            switch (window.DEV_MODE) {
+            switch (window['DEV_MODE']) {
                 case 'warn':
                     try {
                         console.error(message);
@@ -26,12 +26,12 @@ define(function() {
         /**
          * Conditionally logs messages to help debug based on the value of DEBUG_MODE
          * @param {*} message
-         * @param {boolean} [important]
+         * @param {boolean=} important
          */
         log: function(message, important) {
             var prefix = 'VarGate SG1 Log:';
             var args = [];
-            if (window.DEBUG_MODE) {
+            if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
                     args = message;
                 } else {
@@ -39,7 +39,7 @@ define(function() {
                 }
                 args.unshift(prefix);
                 try {
-                    switch (window.DEBUG_MODE) {
+                    switch (window['DEBUG_MODE']) {
                         case 'verbose':
                             console.warn.apply(console, args);
                             break;
@@ -60,7 +60,7 @@ define(function() {
         /**
          * Used to squelch the log / throw functions. This allows existing functions to be re-used
          * when creating explicit functions to override expected behaviors.
-         * @param {boolean} [bool]
+         * @param {boolean=} bool
          * @returns {boolean}
          */
         squelch: function(bool) {

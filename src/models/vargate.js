@@ -15,7 +15,7 @@ define([
         var gateMap = {};
         var subKeyWaitCount = 0;
         this.moduleName = moduleName;
-        if (window.DEBUG_MODE === 'verbose') {
+        if (window['DEBUG_MODE'] === 'verbose') {
             (function(self) {
                 self.parent = parent;
                 self.children = children;
@@ -95,11 +95,13 @@ define([
          * Cannot overwrite keys set for the parent module.
          * @param {string} key
          * @param {*} val
+         * @param {Object=} contextualData
+         * @param {string=} contextualKey
          */
-        this.set = function(key, val) {
-            var sourceData = arguments[2] || data;
+        this.set = function(key, val, contextualData, contextualKey) {
+            var sourceData = contextualData || data;
             // Grab the namespaced key
-            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : arguments[3];
+            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : contextualKey;
             var subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
@@ -154,9 +156,10 @@ define([
         };
         /**
          * Clears all data for the current module
+         * @param {Object=} [contextualData]
          */
-        this.clear = function() {
-            var dataArr = self.moduleName === this.moduleName ? data : arguments[0];
+        this.clear = function(contextualData) {
+            var dataArr = self.moduleName === this.moduleName ? data : contextualData;
             if (parent) {
                 parent.clear.call(this, dataArr);
             } else {
@@ -258,8 +261,8 @@ define([
          * Sets up the gate and gateMap to fire the provided callback when the conditions are met.
          * @param {string} namespace
          * @param {string|Array} prop
-         * @param {function|Array} fn
-         * @param {*} context
+         * @param {Function|Array} fn
+         * @param {Object} context
          * @param {boolean} [stop]
          */
         function addCallback(namespace, prop, fn, context, stop) {
@@ -351,7 +354,7 @@ define([
          * @param {Object} object
          * @param {string} key
          * @param {string} fullKey
-         * @param {VarGate} context
+         * @param {Object} context
          */
         function assignNestedPropertyListener(object, key, fullKey, context) {
             var pathArray = key.split('.');
