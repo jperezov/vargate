@@ -4,7 +4,7 @@ define([
     /**
      * VarGate constructor
      * @param {string} moduleName
-     * @param {VarGate} [parent]
+     * @param {VarGate=} parent
      * @constructor
      */
     function VarGate(moduleName, parent) {
@@ -29,10 +29,11 @@ define([
          * Registers a child module, which will be able to access, but not set,
          * the data available for this module.
          * @param {string} module
+         * @param {Object=} contextualChildren
          * @returns {VarGate}
          */
-        this.register = function(module) {
-            var sourceChildren = arguments[1] || children;
+        this.register = function(module, contextualChildren) {
+            var sourceChildren = contextualChildren || children;
             var namespacedModule = this.moduleName === self.moduleName ? self.moduleName + '.' + module : module;
             if (parent) {
                 // All modules should be registered with the top-level parent
@@ -57,7 +58,7 @@ define([
          * Creates a `when` listener that triggers whenever a `set` occurs
          * and the conditions for `vars` evaluate to true.
          * @param {string|Array} vars
-         * @param {function} fn
+         * @param {Function} fn
          * @param {Object} context
          */
         this.on = function(vars, fn, context) {
@@ -67,7 +68,7 @@ define([
          * Executes a given function when data is set or meets a condition.
          * Executes immediately if conditions have already been met.
          * @param {string|Array} vars
-         * @param {function} fn
+         * @param {Function|Array} fn
          * @param {Object} context
          */
         this.when = function(vars, fn, context) {
@@ -77,9 +78,8 @@ define([
                 parent.when.call(this, vars, fn, context);
             } else if (vars.length && typeof vars !== 'string') {
                 util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
-                for (var v in vars) {
-                    if (! vars.hasOwnProperty(v)) continue;
-                    addCallback.call(this, namespace, vars[v], fn, context || this);
+                for (var i = 0; i < vars.length; i ++) {
+                    addCallback.call(this, namespace, vars[i], fn, context || this);
                     // Try to see if this should already execute
                 }
                 this.unlock(vars[0]);
@@ -87,14 +87,14 @@ define([
                 util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
                 addCallback.call(this, namespace, vars, fn, context || this);
                 // Try to see if this should already execute
-                this.unlock(vars);
+                this.unlock(vars + ''); // Concatenating a string so that GCC stops thinking this could be an array
             }
         };
         /**
          * Sets a value for a given key within the current module.
          * Cannot overwrite keys set for the parent module.
          * @param {string} key
-         * @param {*} val
+         * @param {*=} val
          * @param {Object=} contextualData
          * @param {string=} contextualKey
          */
@@ -190,12 +190,11 @@ define([
         /**
          * Unlocks a given key
          * @param {string} key
+         * @param {boolean=} skipSubKeyCheck
          */
-        this.unlock = function(key) {
-            var unlockingSubmodule = arguments[1];
-            var skipSubKeyCheck = arguments[2];
+        this.unlock = function(key, skipSubKeyCheck) {
             if (parent) {
-                parent.unlock.call(this, key, unlockingSubmodule, skipSubKeyCheck);
+                parent.unlock.call(this, key, skipSubKeyCheck);
             } else if (typeof gateMap[key] === 'object') {
                 var valRegex = /^@\w+$/;
                 for (var namespace in gateMap[key].namespace) {
@@ -249,7 +248,7 @@ define([
                     if (! gateMap.hasOwnProperty(gateKey)) continue;
                     var split = gateKey.split('.');
                     if (split && split.length && split[split.length - 1] === key) {
-                        self.unlock(gateKey, true, true);
+                        self.unlock(gateKey, true);
                     }
                 }
             }
@@ -263,7 +262,7 @@ define([
          * @param {string|Array} prop
          * @param {Function|Array} fn
          * @param {Object} context
-         * @param {boolean} [stop]
+         * @param {boolean=} stop
          */
         function addCallback(namespace, prop, fn, context, stop) {
             var key, val, operator;
