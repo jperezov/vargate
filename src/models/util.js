@@ -12,7 +12,7 @@ define(function() {
             switch (window['DEV_MODE']) {
                 case 'warn':
                     try {
-                        console.error(message);
+                        console['error'](message);
                     } catch (e) {
                         // Looks like we can't warn anyone
                     }
@@ -20,12 +20,12 @@ define(function() {
                 case 'strict':
                     throw message;
                 default:
-                    // do nothing
+                // do nothing
             }
         },
         /**
          * Conditionally logs messages to help debug based on the value of DEBUG_MODE
-         * @param {*} message
+         * @param {Array|string} message
          * @param {boolean=} important
          */
         log: function(message, important) {
@@ -41,13 +41,13 @@ define(function() {
                 try {
                     switch (window['DEBUG_MODE']) {
                         case 'verbose':
-                            console.warn.apply(console, args);
+                            console['warn'].apply(console, args);
                             break;
                         case 'static':
-                            console.warn.apply(console, JSON.parse(JSON.stringify(args)));
+                            console['warn'].apply(console, JSON.parse(JSON.stringify(args)));
                             break;
                         case 'minimal':
-                            if (important) console.warn.apply(console, args);
+                            if (important) console['warn'].apply(console, args);
                             break;
                         default:
                         // do nothing
