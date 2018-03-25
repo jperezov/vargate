@@ -30,6 +30,13 @@
     grandChild.when(['string', 'one', 'two', 'three'], function(string, one, two, three) {
         console.log('SUCCESS!!!: ', string, one, two, three, arguments);
     });
+    var someObj = {};
+    VarGate.when([[someObj, 'exists']], function (someObj) {
+        console.log(someObj, 'woo!');
+    });
+    setTimeout(function() {
+        someObj.exists = true;
+    }, 3000);
 </script>
 </body>
 </html>

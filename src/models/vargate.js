@@ -202,14 +202,14 @@ define([
                     var gateObj = gate[namespace];
                     var conditions = gateObj.cond;
                     var count = 0;
-                    var cond, c, left, right;
+                    var cond, c, l, r;
                     for (cond in conditions) {
                         if (! conditions.hasOwnProperty(cond)) continue;
                         c = conditions[cond];
-                        left = gateObj.module.get(cond);
-                        right = (c.val && c.val.toString().match(valRegex)) ? gateObj.module.get(c.val.slice(1)) : c.val;
+                        l = gateObj.module.get(cond);
+                        r = (c.val && c.val.toString().match(valRegex)) ? gateObj.module.get(c.val.slice(1)) : c.val;
                         try {
-                            if (eval('left ' + c.operator  + ' right')) {
+                            if (eval('l ' + c.operator  + ' r')) {
                                 count ++;
                             }
                         } catch (e) {
