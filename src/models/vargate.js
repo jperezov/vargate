@@ -59,7 +59,7 @@ define([
          * and the conditions for `vars` evaluate to true.
          * @param {string|Array} vars
          * @param {Function} fn
-         * @param {Object} context
+         * @param {Object=} context
          */
         this.on = function(vars, fn, context) {
             this.when(vars, [fn, true], context);
@@ -69,7 +69,7 @@ define([
          * Executes immediately if conditions have already been met.
          * @param {string|Array} vars
          * @param {Function|Array} fn
-         * @param {Object} context
+         * @param {Object=} context
          */
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
