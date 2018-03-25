@@ -1,5 +1,5 @@
 /**!
- * vargate v0.8.3
+ * vargate v0.8.5
  * Copyright (c) 2018 Jonathan Perez.
  * Licensed under the MIT License.
  */
@@ -156,7 +156,7 @@
          * and the conditions for `vars` evaluate to true.
          * @param {string|Array} vars
          * @param {Function} fn
-         * @param {Object} context
+         * @param {Object=} context
          */
         this.on = function(vars, fn, context) {
             this.when(vars, [fn, true], context);
@@ -166,7 +166,7 @@
          * Executes immediately if conditions have already been met.
          * @param {string|Array} vars
          * @param {Function|Array} fn
-         * @param {Object} context
+         * @param {Object=} context
          */
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
