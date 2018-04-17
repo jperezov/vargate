@@ -1,4 +1,5 @@
 define(function() {
+    /** @type {boolean} */
     var squelch = false;
     //noinspection UnnecessaryLocalVariableJS
     var util = {
@@ -8,6 +9,7 @@ define(function() {
          */
         throw: function(string) {
             // Namespace the message
+            /** @type {string} */
             var message = 'VarGate Error: ' + string;
             switch (window['DEV_MODE']) {
                 case 'warn':
@@ -29,7 +31,9 @@ define(function() {
          * @param {boolean=} important
          */
         log: function(message, important) {
+            /** @type {string} */
             var prefix = 'VarGate SG1 Log:';
+            /** @type {Array} */
             var args = [];
             if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
@@ -71,17 +75,24 @@ define(function() {
         },
         /**
          * Generates a unique ID
+         * @Function
          * @returns {string}
          */
         guid: (function() {
+            /** @type {Array<string>} */
             var lut = [];
             for (var i = 0; i < 256; i ++) {
+                /** @type {string} */
                 lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
             }
             return function() {
+                /** @type {number} */
                 var d0 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d1 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d2 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d3 = Math.random() * 0xffffffff | 0;
                 return lut[d0 & 0xff] + lut[d0 >> 8 & 0xff] + lut[d0 >> 16 & 0xff] + lut[d0 >> 24 & 0xff] + '-' +
                     lut[d1 & 0xff] + lut[d1 >> 8 & 0xff] + '-' + lut[d1 >> 16 & 0x0f | 0x40] + lut[d1 >> 24 & 0xff] + '-' +

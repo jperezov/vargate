@@ -1,11 +1,12 @@
 /**!
- * vargate v0.8.6
+ * vargate v0.8.7
  * Copyright (c) 2018 Jonathan Perez.
  * Licensed under the MIT License.
  */
 (function(window) {
     "use strict";
 
+    /** @type {boolean} */
     var squelch = false;
     //noinspection UnnecessaryLocalVariableJS
     var util = {
@@ -15,6 +16,7 @@
          */
         throw: function(string) {
             // Namespace the message
+            /** @type {string} */
             var message = 'VarGate Error: ' + string;
             switch (window['DEV_MODE']) {
                 case 'warn':
@@ -36,7 +38,9 @@
          * @param {boolean=} important
          */
         log: function(message, important) {
+            /** @type {string} */
             var prefix = 'VarGate SG1 Log:';
+            /** @type {Array} */
             var args = [];
             if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
@@ -78,17 +82,24 @@
         },
         /**
          * Generates a unique ID
+         * @Function
          * @returns {string}
          */
         guid: (function() {
+            /** @type {Array<string>} */
             var lut = [];
             for (var i = 0; i < 256; i ++) {
+                /** @type {string} */
                 lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
             }
             return function() {
+                /** @type {number} */
                 var d0 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d1 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d2 = Math.random() * 0xffffffff | 0;
+                /** @type {number} */
                 var d3 = Math.random() * 0xffffffff | 0;
                 return lut[d0 & 0xff] + lut[d0 >> 8 & 0xff] + lut[d0 >> 16 & 0xff] + lut[d0 >> 24 & 0xff] + '-' +
                     lut[d1 & 0xff] + lut[d1 >> 8 & 0xff] + '-' + lut[d1 >> 16 & 0x0f | 0x40] + lut[d1 >> 24 & 0xff] + '-' +
@@ -105,32 +116,32 @@
      * @constructor
      */
     function VarGate(moduleName, parent) {
+        /** @type {VarGate} */
         var self = this;
+        /** @type {Object} */
         var children = {};
+        /** @type {Object} */
         var data = {};
+        /** @type {Object} */
         var gate = {};
+        /** @type {Object} */
         var gateMap = {};
+        /** @type {number} */
         var subKeyWaitCount = 0;
+        /** @type {string} */
         this.moduleName = moduleName;
-        if (window['DEBUG_MODE'] === 'verbose') {
-            (function(self) {
-                self.parent = parent;
-                self.children = children;
-                self.data = data;
-                self.gate = gate;
-                self.gateMap = gateMap;
-                self.subKeyWaitCount = subKeyWaitCount;
-            })(this);
-        }
+
         /**
          * Registers a child module, which will be able to access, but not set,
          * the data available for this module.
          * @param {string} module
-         * @param {Object=} contextualChildren
+         * @param {Object<VarGate>=} contextualChildren
          * @returns {VarGate}
          */
         this.register = function(module, contextualChildren) {
+            /** @type {Object} */
             var sourceChildren = contextualChildren || children;
+            /** @type {string} */
             var namespacedModule = this.moduleName === self.moduleName ? self.moduleName + '.' + module : module;
             if (parent) {
                 // All modules should be registered with the top-level parent
@@ -156,7 +167,7 @@
          * and the conditions for `vars` evaluate to true.
          * @param {string|Array} vars
          * @param {Function} fn
-         * @param {Object=} context
+         * @param {VarGate=} context
          */
         this.on = function(vars, fn, context) {
             this.when(vars, [fn, true], context);
@@ -166,10 +177,11 @@
          * Executes immediately if conditions have already been met.
          * @param {string|Array} vars
          * @param {Function|Array} fn
-         * @param {Object=} context
+         * @param {VarGate=} context
          */
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
+            /** @type {string} */
             var namespace = this.moduleName + '.' + util.guid();
             if (parent) {
                 parent.when.call(this, vars, fn, context);
@@ -196,9 +208,12 @@
          * @param {string=} contextualKey
          */
         this.set = function(key, val, contextualData, contextualKey) {
+            /** @type {Object} */
             var sourceData = contextualData || data;
             // Grab the namespaced key
-            var sourceKey = this.moduleName === self.moduleName? this.moduleName + '.' + key : contextualKey;
+            /** @type {string} */
+            var sourceKey = (this.moduleName === self.moduleName? this.moduleName + '.' + key : contextualKey) + '';
+            /** @type {Array} */
             var subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
@@ -253,10 +268,11 @@
         };
         /**
          * Clears all data for the current module
-         * @param {Object=} [contextualData]
+         * @param {Object=} contextualData
          */
         this.clear = function(contextualData) {
-            var dataArr = self.moduleName === this.moduleName ? data : contextualData;
+            /** @type {Object} */
+            var dataArr = (self.moduleName === this.moduleName ? data : contextualData) || {};
             if (parent) {
                 parent.clear.call(this, dataArr);
             } else {
@@ -293,11 +309,15 @@
             if (parent) {
                 parent.unlock.call(this, key, skipSubKeyCheck);
             } else if (typeof gateMap[key] === 'object') {
+                /** @type {RegExp} */
                 var valRegex = /^@\w+$/;
                 for (var namespace in gateMap[key].namespace) {
                     if (! gateMap[key].namespace.hasOwnProperty(namespace)) continue;
+                    /** @type {Object} */
                     var gateObj = gate[namespace];
+                    /** @type {Object} */
                     var conditions = gateObj.cond;
+                    /** @type {number} */
                     var count = 0;
                     var cond, c, l, r;
                     for (cond in conditions) {
@@ -315,6 +335,7 @@
                     }
                     if (count === gateObj.vars.length) {
                         util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.moduleName + '".', true);
+                        /** @type {Array} */
                         var args = [];
                         for (var i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
@@ -343,6 +364,7 @@
             } else if (subKeyWaitCount && ! skipSubKeyCheck) {
                 for (var gateKey in gateMap) {
                     if (! gateMap.hasOwnProperty(gateKey)) continue;
+                    /** @type {Array} */
                     var split = gateKey.split('.');
                     if (split && split.length && split[split.length - 1] === key) {
                         self.unlock(gateKey, true);
@@ -358,19 +380,29 @@
          * @param {string} namespace
          * @param {string|Array} prop
          * @param {Function|Array} fn
-         * @param {Object} context
+         * @param {VarGate} context
          * @param {boolean=} stop
          */
         function addCallback(namespace, prop, fn, context, stop) {
-            var key, val, operator;
+            /** @type {string|null} */
+            var key;
+            /** @type {*} */
+            var val;
+            /** @type {string} */
+            var operator;
             context = context || this;
             if (typeof gate[namespace] === 'undefined') {
                 // Define the property if this is the first time--otherwise re-use the old definition
                 gate[namespace] = {
+                    /** @type {Array} */
                     vars: [],
+                    /** @type {Object} */
                     cond: {},
+                    /** @type {Function|Array} */
                     fn: fn,
+                    /** @type {VarGate} */
                     module: this,
+                    /** @type {VarGate|undefined} */
                     context: context
                 };
             }
@@ -400,12 +432,16 @@
             try {
                 gate[namespace].vars.push(key);
                 gate[namespace].cond[key] = {
+                    /** @type {string} */
                     operator: operator,
+                    /** @type {*} */
                     val: val
                 };
                 if (typeof gateMap[key] === 'undefined') {
                     gateMap[key] = {
+                        /** @type {number} */
                         deps: 0,
+                        /** @type {Object<string>} */
                         namespace: {}
                     };
                 }
@@ -450,9 +486,10 @@
          * @param {Object} object
          * @param {string} key
          * @param {string} fullKey
-         * @param {Object} context
+         * @param {VarGate} context
          */
         function assignNestedPropertyListener(object, key, fullKey, context) {
+            /** @type {Array} */
             var pathArray = key.split('.');
             if (pathArray.length === 1 && typeof key === 'string') {
                 // Sanitize `key`
@@ -460,8 +497,10 @@
                 if (object[key] === undefined) {
                     // Create a watch on the property, and run once it's been set
                     Object.defineProperty(object, key, {
-                        configurable: true,
-                        set: function(val) {
+                        /** @type {boolean} */
+                        'configurable': true,
+                        /** @param {*} val */
+                        'set': function(val) {
                             delete object[key];
                             object[key] = val;
                             context.set(fullKey, object);
@@ -475,6 +514,40 @@
                 assignNestedPropertyListener(object[pathArray[0]], pathArray.splice(1).join('.'), fullKey, context);
             }
         }
+
+        // Exports for Google Closure Compiler
+        /** @type {VarGate|undefined} */
+        this['parent'] = parent;
+        /** @type {Object<VarGate>} */
+        this['children'] = children;
+        /** @type {Object} */
+        this['data'] = data;
+        /** @type {Object} */
+        this['gate'] = gate;
+        /** @type {Object} */
+        this['gateMap'] = gateMap;
+        /** @type {number} */
+        this['subKeyWaitCount'] = subKeyWaitCount;
+        /** @Function */
+        this['register'] = this.register;
+        /** @Function */
+        this['new'] = this.new;
+        /** @Function */
+        this['on'] = this.on;
+        /** @Function */
+        this['when'] = this.when;
+        /** @Function */
+        this['set'] = this.set;
+        /** @Function */
+        this['override'] = this.override;
+        /** @Function */
+        this['unset'] = this.unset;
+        /** @Function */
+        this['get'] = this.get;
+        /** @Function */
+        this['clearAll'] = this.clearAll;
+        /** @Function */
+        this['unlock'] = this.unlock;
     }
 
     var Gate = new VarGate('vargate');
