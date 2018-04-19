@@ -1,17 +1,11 @@
 {
   "name": "vargate",
   "private": false,
-  "version": "0.8.7",
+  "version": "0.9.0",
   "description": "Async Javascript library for code that should only run after data becomes available.",
-  "author": {
-    "name": "Jonathan Perez",
-    "email": "jonathan@bluecranegames.com"
-  },
+  "author": "Jonathan Perez <jonathan@bluecraneads.com>",
   "contributors": [
-    {
-      "name": "Jonathan Perez",
-      "email": "jonathan@bluecranegames.com"
-    }
+    "Jonathan Perez <jonathan@bluecraneads.com>"
   ],
   "keywords": [
     "async",
@@ -21,9 +15,9 @@
   "dependencies": {},
   "devDependencies": {
     "grunt": "^0.4.5",
+    "google-closure-compiler": "^20180204.0.0",
     "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-requirejs": "^0.4.4",
-    "grunt-contrib-uglify": "^0.9.1"
+    "grunt-contrib-requirejs": "^0.4.4"
   },
   "scripts": {
     "start": "",

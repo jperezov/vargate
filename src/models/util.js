@@ -1,17 +1,22 @@
-define(function() {
+define([
+    '../vars/global'
+], function (global) {
     /** @type {boolean} */
-    var squelch = false;
+    let squelch = false;
     //noinspection UnnecessaryLocalVariableJS
-    var util = {
+    /**
+     * @type {Object<Function>}
+     */
+    const util = {
         /**
          * Conditionally logs warnings or throws errors depending on the DEV_MODE setting.
-         * @param string
+         * @param {string} string
          */
-        throw: function(string) {
+        throw: function (string) {
             // Namespace the message
             /** @type {string} */
-            var message = 'VarGate Error: ' + string;
-            switch (window['DEV_MODE']) {
+            const message = 'VarGate Error: ' + string;
+            switch (global['DEV_MODE']) {
                 case 'warn':
                     try {
                         console['error'](message);
@@ -30,12 +35,12 @@ define(function() {
          * @param {Array|string} message
          * @param {boolean=} important
          */
-        log: function(message, important) {
+        log: function (message, important) {
             /** @type {string} */
-            var prefix = 'VarGate SG1 Log:';
+            const prefix = 'VarGate SG1 Log:';
             /** @type {Array} */
-            var args = [];
-            if (window['DEBUG_MODE']) {
+            let args = [];
+            if (global['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
                     args = message;
                 } else {
@@ -43,7 +48,7 @@ define(function() {
                 }
                 args.unshift(prefix);
                 try {
-                    switch (window['DEBUG_MODE']) {
+                    switch (global['DEBUG_MODE']) {
                         case 'verbose':
                             console['warn'].apply(console, args);
                             break;
@@ -67,7 +72,7 @@ define(function() {
          * @param {boolean=} bool
          * @returns {boolean}
          */
-        squelch: function(bool) {
+        squelch: function (bool) {
             if (typeof bool === 'boolean') {
                 squelch = bool;
             }
@@ -78,22 +83,22 @@ define(function() {
          * @Function
          * @returns {string}
          */
-        guid: (function() {
+        guid: (function () {
             /** @type {Array<string>} */
-            var lut = [];
-            for (var i = 0; i < 256; i ++) {
+            const lut = [];
+            for (let i = 0; i < 256; i ++) {
                 /** @type {string} */
                 lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
             }
-            return function() {
+            return function () {
                 /** @type {number} */
-                var d0 = Math.random() * 0xffffffff | 0;
+                const d0 = Math.random() * 0xffffffff | 0;
                 /** @type {number} */
-                var d1 = Math.random() * 0xffffffff | 0;
+                const d1 = Math.random() * 0xffffffff | 0;
                 /** @type {number} */
-                var d2 = Math.random() * 0xffffffff | 0;
+                const d2 = Math.random() * 0xffffffff | 0;
                 /** @type {number} */
-                var d3 = Math.random() * 0xffffffff | 0;
+                const d3 = Math.random() * 0xffffffff | 0;
                 return lut[d0 & 0xff] + lut[d0 >> 8 & 0xff] + lut[d0 >> 16 & 0xff] + lut[d0 >> 24 & 0xff] + '-' +
                     lut[d1 & 0xff] + lut[d1 >> 8 & 0xff] + '-' + lut[d1 >> 16 & 0x0f | 0x40] + lut[d1 >> 24 & 0xff] + '-' +
                     lut[d2 & 0x3f | 0x80] + lut[d2 >> 8 & 0xff] + '-' + lut[d2 >> 16 & 0xff] + lut[d2 >> 24 & 0xff] +

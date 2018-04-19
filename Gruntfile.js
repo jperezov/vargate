@@ -1,10 +1,11 @@
 module.exports = function(grunt) {
 
-    grunt.loadNpmTasks('intern');
+    //grunt.loadNpmTasks('intern');
+    require('google-closure-compiler').grunt(grunt);
 
-    var pkg = grunt.file.readJSON('package.json');
-    var year = (new Date).getFullYear();
-    var headerComment = '/**!\n' +
+    const pkg = grunt.file.readJSON('package.json');
+    const year = (new Date).getFullYear();
+    const headerComment = '/**!\n' +
                         ' * <%= pkg.name %> v<%= pkg.version %>\n' +
                         ' * Copyright (c) <%= year %> <%= pkg.author.name %>.\n' +
                         ' * Licensed under the <%= pkg.license %> License.\n' +
@@ -29,7 +30,7 @@ module.exports = function(grunt) {
                     // Avoid breaking semicolons inserted by r.js
                     skipSemiColonInsertion: true,
                     wrap: {
-                        start: headerComment + "(function(window) {\n    \"use strict\";\n",
+                        start: headerComment + "(function(global) {\n    \"use strict\";\n",
                         end: "}(typeof window !== 'undefined' ? window : this));"
                     },
                     rawText: {},
@@ -37,13 +38,17 @@ module.exports = function(grunt) {
                 }
             }
         },
-        uglify: {
-            options: {
-                banner: headerComment
-            },
-            dist: {
+        'closure-compiler': {
+            my_target: {
                 files: {
                     'vargate.min.js': ['vargate.js']
+                },
+                options: {
+                    compilation_level: 'ADVANCED',
+                    language_in: 'ECMASCRIPT6_STRICT',
+                    language_out: 'ECMASCRIPT5_STRICT',
+                    create_source_map: false, //'./BlueEggsAndAds.min.js.map',
+                    output_wrapper: headerComment + '(function(){%output%}).call(this)' //# sourceMappingURL=vargate.min.js.map'
                 }
             }
         },
@@ -73,15 +78,20 @@ module.exports = function(grunt) {
      * @param {String} contents The contents to be written (including their AMD wrappers)
      */
     function convert(name, path, contents) {
-        var rdefineEnd = /\}\s*?\);[^}\w]*$/;
+        const rdefineEnd = /\}\s*?\);[^}\w]*$/;
         // Convert var modules
-        if ( /.\/var\//.test( path ) ) {
-            contents = contents
-                .replace(/define\([\w\W]*?return/, "    var " + (/var\/([\w-]+)/.exec(name)[1]) + " =")
-                .replace(rdefineEnd, "")
-                .replace(/\/\*\*/, "    \/**")
-                .replace(/\s\*\s/g, "     * ")
-                .replace(/\s\*\//g, "     */");
+        if (/.\/vars\//.test(path)) {
+            // Don't convert `global` into a variable
+            if (/global/.test(name)) {
+                contents = '';
+            } else {
+                contents = contents
+                    .replace(/define\([\w\W]*?return/, "    var " + (/var\/([\w-]+)/.exec(name)[1]) + " =")
+                    .replace(rdefineEnd, "")
+                    .replace(/\/\*\*/, "    \/**")
+                    .replace(/\s\*\s/g, "     * ")
+                    .replace(/\s\*\//g, "     */");
+            }
         } else {
             contents = contents
                 .replace(/\s*return\s+[^\}]+(\}\s*?\);[^\w\}]*)$/, "$1")
@@ -109,18 +119,17 @@ module.exports = function(grunt) {
     }
 
     grunt.loadNpmTasks('grunt-contrib-requirejs');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     //grunt.loadNpmTasks('intern');
 
     grunt.registerTask('test', [
         'jshint',
-        'intern'
+//        'intern'
     ]);
 
     grunt.registerTask('default', [
         'requirejs',
-        'uglify'
+        'closure-compiler'
     ]);
 
 };

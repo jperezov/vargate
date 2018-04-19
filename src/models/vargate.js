@@ -9,17 +9,17 @@ define([
      */
     function VarGate(moduleName, parent) {
         /** @type {VarGate} */
-        var self = this;
+        const self = this;
         /** @type {Object} */
-        var children = {};
+        const children = {};
         /** @type {Object} */
-        var data = {};
+        const data = {};
         /** @type {Object} */
-        var gate = {};
+        const gate = {};
         /** @type {Object} */
-        var gateMap = {};
+        const gateMap = {};
         /** @type {number} */
-        var subKeyWaitCount = 0;
+        let subKeyWaitCount = 0;
         /** @type {string} */
         this.moduleName = moduleName;
 
@@ -32,14 +32,14 @@ define([
          */
         this.register = function(module, contextualChildren) {
             /** @type {Object} */
-            var sourceChildren = contextualChildren || children;
+            const sourceChildren = contextualChildren || children;
             /** @type {string} */
-            var namespacedModule = this.moduleName === self.moduleName ? self.moduleName + '.' + module : module;
+            const namespacedModule = this.moduleName === self.moduleName ? `${self.moduleName}.${module}` : module;
             if (parent) {
                 // All modules should be registered with the top-level parent
                 return parent.register.call(this, namespacedModule, sourceChildren);
             }
-            util.log('Registering "' + namespacedModule + '"', true);
+            util.log(`Registering "${namespacedModule}"`, true);
             // This ensures parents are properly associated with nested modules *and* the top-level parent
             children[namespacedModule] = sourceChildren[namespacedModule] = new VarGate(namespacedModule, this);
             return children[namespacedModule];
@@ -50,7 +50,7 @@ define([
          * @returns {VarGate}
          */
         this.new = function(module) {
-            util.log('Creating new "' + module + '"', true);
+            util.log(`Creating new "${module}"`, true);
             return new VarGate(module);
         };
         /**
@@ -74,18 +74,18 @@ define([
         this.when = function(vars, fn, context) {
             // Used to associate data with its callback
             /** @type {string} */
-            var namespace = this.moduleName + '.' + util.guid();
+            const namespace = `${this.moduleName}.${util.guid()}`;
             if (parent) {
                 parent.when.call(this, vars, fn, context);
             } else if (vars.length && typeof vars !== 'string') {
-                util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
-                for (var i = 0; i < vars.length; i ++) {
+                util.log([`Waiting in "${this.moduleName}" for`, vars], true);
+                for (let i = 0; i < vars.length; i ++) {
                     addCallback.call(this, namespace, vars[i], fn, context || this);
                     // Try to see if this should already execute
                 }
                 this.unlock(vars[0]);
             } else {
-                util.log(['Waiting in "' + this.moduleName + '" for', vars], true);
+                util.log([`Waiting in "${this.moduleName}" for`, vars], true);
                 addCallback.call(this, namespace, vars, fn, context || this);
                 // Try to see if this should already execute
                 this.unlock(vars + ''); // Concatenating a string so that GCC stops thinking this could be an array
@@ -101,22 +101,22 @@ define([
          */
         this.set = function(key, val, contextualData, contextualKey) {
             /** @type {Object} */
-            var sourceData = contextualData || data;
+            const sourceData = contextualData || data;
             // Grab the namespaced key
             /** @type {string} */
-            var sourceKey = (this.moduleName === self.moduleName? this.moduleName + '.' + key : contextualKey) + '';
+            const sourceKey = (this.moduleName === self.moduleName? `${this.moduleName}.${key}` : contextualKey) + '';
             /** @type {Array} */
-            var subKey = key.split('.');
+            const subKey = key.split('.');
             if (subKey && subKey.length > 1) {
                 // Allow parent to set data for submodules
-                children[this.moduleName + '.' + subKey[0]].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
+                children[`${this.moduleName}.${subKey[0]}`].set(subKey.splice(1).join('.'), val, sourceData, sourceKey);
             } else if (parent) {
                 checkDefined.call(this, key);
                 parent.set.call(this, key, val, sourceData, sourceKey);
             } else {
                 data[sourceKey] = sourceData[sourceKey] = val;
                 checkValue.call(this, key, val);
-                util.log(['Set "' + sourceKey + '" to value', val]);
+                util.log([`${Set} "${sourceKey}" to value`, val]);
                 this.unlock(key);
             }
         };
@@ -139,7 +139,7 @@ define([
         this.unset = function(key) {
             checkDefined.call(this, key);
             util.squelch(true);
-            var ret = this.set(key);
+            const ret = this.set(key);
             util.squelch(false);
             return ret;
         };
@@ -149,13 +149,13 @@ define([
          * @returns {*}
          */
         this.get = function(key) {
-            var subModuleData = data[self.moduleName + '.' + key];
+            const subModuleData = data[`${self.moduleName}.${key}`];
             if (typeof subModuleData !== 'undefined') {
                 return subModuleData;
             } else if (parent) {
                 return parent.get.call(this, key);
             } else {
-                return data[this.moduleName + '.' + key];
+                return data[`${this.moduleName}.${key}`];
             }
         };
         /**
@@ -164,12 +164,12 @@ define([
          */
         this.clear = function(contextualData) {
             /** @type {Object} */
-            var dataArr = (self.moduleName === this.moduleName ? data : contextualData) || {};
+            const dataArr = (self.moduleName === this.moduleName ? data : contextualData) || {};
             if (parent) {
                 parent.clear.call(this, dataArr);
             } else {
-                var keyRegex = new RegExp('^' + this.moduleName + '\\.[^\\.]*$');
-                for (var key in dataArr) {
+                const keyRegex = new RegExp(`^${this.moduleName}\.[^\.]*$`);
+                for (const key in dataArr) {
                     // Clear data for the module
                     if (dataArr.hasOwnProperty(key) && key.match(keyRegex)) {
                         delete dataArr[key];
@@ -186,7 +186,7 @@ define([
          */
         this.clearAll = function() {
             this.clear();
-            for (var child in children) {
+            for (const child in children) {
                 if (children.hasOwnProperty(child)) {
                     children[child].clearAll();
                 }
@@ -202,23 +202,27 @@ define([
                 parent.unlock.call(this, key, skipSubKeyCheck);
             } else if (typeof gateMap[key] === 'object') {
                 /** @type {RegExp} */
-                var valRegex = /^@\w+$/;
-                for (var namespace in gateMap[key].namespace) {
+                const valRegex = /^@\w+$/;
+                for (const namespace in gateMap[key].namespace) {
                     if (! gateMap[key].namespace.hasOwnProperty(namespace)) continue;
                     /** @type {Object} */
-                    var gateObj = gate[namespace];
+                    const gateObj = gate[namespace];
                     /** @type {Object} */
-                    var conditions = gateObj.cond;
+                    const conditions = gateObj.cond;
                     /** @type {number} */
-                    var count = 0;
-                    var cond, c, l, r;
+                    let count = 0;
+                    /** @type {string} */
+                    let cond;
                     for (cond in conditions) {
                         if (! conditions.hasOwnProperty(cond)) continue;
-                        c = conditions[cond];
-                        l = gateObj.module.get(cond);
-                        r = (c.val && c.val.toString().match(valRegex)) ? gateObj.module.get(c.val.slice(1)) : c.val;
+                        /** @type {Object} */
+                        const c = conditions[cond];
+                        /** @type {*} */
+                        const left = gateObj.module.get(cond);
+                        /** @type {*} */
+                        const right = (c.val && c.val.toString().match(valRegex)) ? gateObj.module.get(c.val.slice(1)) : c.val;
                         try {
-                            if (eval('l ' + c.operator  + ' r')) {
+                            if ((new Function('l', 'r', `return eval('l ${c.operator} r')`))(left, right)) {
                                 count ++;
                             }
                         } catch (e) {
@@ -226,10 +230,10 @@ define([
                         }
                     }
                     if (count === gateObj.vars.length) {
-                        util.log('Conditions [' + gateObj.vars.join(',') + '] met for "' + gateObj.module.moduleName + '".', true);
+                        util.log(`Conditions [${gateObj.vars.join(',')}] met for "${gateObj.module.moduleName}".`, true);
                         /** @type {Array} */
-                        var args = [];
-                        for (var i = 0; i < gateObj.vars.length; i ++) {
+                        const args = [];
+                        for (let i = 0; i < gateObj.vars.length; i ++) {
                             args.push(gateObj.module.get(gateObj.vars[i]));
                         }
                         if (gateObj.fn.length && gateObj.fn[1]) {
@@ -254,10 +258,10 @@ define([
                     }
                 }
             } else if (subKeyWaitCount && ! skipSubKeyCheck) {
-                for (var gateKey in gateMap) {
+                for (const gateKey in gateMap) {
                     if (! gateMap.hasOwnProperty(gateKey)) continue;
                     /** @type {Array} */
-                    var split = gateKey.split('.');
+                    const split = gateKey.split('.');
                     if (split && split.length && split[split.length - 1] === key) {
                         self.unlock(gateKey, true);
                     }
@@ -277,11 +281,11 @@ define([
          */
         function addCallback(namespace, prop, fn, context, stop) {
             /** @type {string|null} */
-            var key;
+            let key;
             /** @type {*} */
-            var val;
+            let val;
             /** @type {string} */
-            var operator;
+            let operator;
             context = context || this;
             if (typeof gate[namespace] === 'undefined') {
                 // Define the property if this is the first time--otherwise re-use the old definition
@@ -300,7 +304,7 @@ define([
             }
             if (Array.isArray(prop)) {
                 if (prop.length === 2) {
-                    key = util.guid() + ':' + prop[1].replace(/\./g, '-');
+                    key = `${util.guid()}:${prop[1].replace(/\./g, '-')}`;
                     operator = '!==';
                     val = undefined;
                     assignNestedPropertyListener(prop[0], prop[1], key, context);
@@ -313,8 +317,7 @@ define([
                         addCallback(namespace, [val.slice(1), operator, '@' + key], fn, context, true);
                     }
                 } else {
-                    util.throw('Invalid number of arguments passed through: ['
-                        + prop.join(',') + '] (should be [key, operator, condition])');
+                    util.throw(`Invalid number of arguments passed through: [${prop.join(',')}] (should be [key, operator, condition])`);
                 }
             } else {
                 key = prop;
@@ -343,7 +346,7 @@ define([
                     subKeyWaitCount ++;
                 }
             } catch (e) {
-                util.throw('Cannot set "' + JSON.stringify(prop) + '" as a property');
+                util.throw(`Cannot set "${JSON.stringify(prop)}" as a property`);
             }
         }
         /**
@@ -354,8 +357,7 @@ define([
          */
         function checkValue(key, val) {
             if (typeof val === 'undefined' && ! util.squelch()) {
-                util.throw('"' + key + '" set to `undefined`. Was this intentional?' +
-                    ' Use `unset("' + key + '")` if it was.');
+                util.throw(`"${key}" set to 'undefined'. Was this intentional? Use 'unset("${key}")' if it was.`);
             }
         }
         /**
@@ -365,12 +367,11 @@ define([
          */
         function checkDefined(key) {
             //noinspection JSPotentiallyInvalidUsageOfThis
-            if (! data[this.moduleName + '.' + key] && typeof parent.get(key) !== 'undefined' && ! util.squelch()) {
+            if (! data[`${this.moduleName}.${key}`] && typeof parent.get(key) !== 'undefined' && ! util.squelch()) {
                 // Not allowing sub-modules to name variables already defined in the parent (unless using override).
                 // Things get weird when expecting a variable defined in two places.
                 //noinspection JSPotentiallyInvalidUsageOfThis
-                util.throw('In "' + this.moduleName + '" variable "' + key + '" defined in module "'
-                    + parent.moduleName + '". Choose a different name.');
+                util.throw(`In "${this.moduleName}" variable "${key}" defined in module "${parent.moduleName}". Choose a different name.`);
             }
         }
         /**
@@ -382,7 +383,7 @@ define([
          */
         function assignNestedPropertyListener(object, key, fullKey, context) {
             /** @type {Array} */
-            var pathArray = key.split('.');
+            const pathArray = key.split('.');
             if (pathArray.length === 1 && typeof key === 'string') {
                 // Sanitize `key`
                 key = key.replace(/[^\w$]/g, '');
