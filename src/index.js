@@ -1,17 +1,17 @@
 define([
-    './vars/global',
+    './vars/window',
     './models/vargate'
-], function(global, VarGate) {
+], function(window, VarGate) {
     const Gate = new VarGate('vargate');
-    if (typeof global['define'] === 'function' && global['define']['amd']) {
+    if (typeof window['define'] === 'function' && window['define']['amd']) {
         // Remain anonymous if AMD library is available
-        global['define'](function() {
+        window['define'](function() {
             return Gate;
         });
-    } else if (typeof global['module'] === 'object' && global['module']['exports']) {
+    } else if (typeof window['module'] === 'object' && window['module']['exports']) {
         // Use CommonJS / ES6 if available
-        global['module']['exports'] = Gate;
+        window['module']['exports'] = Gate;
     } else {
-        global['VarGate'] = Gate;
+        window['VarGate'] = Gate;
     }
 });

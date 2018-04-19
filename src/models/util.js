@@ -1,6 +1,6 @@
 define([
-    '../vars/global'
-], function (global) {
+    '../vars/window'
+], function (window) {
     /** @type {boolean} */
     let squelch = false;
     //noinspection UnnecessaryLocalVariableJS
@@ -16,7 +16,7 @@ define([
             // Namespace the message
             /** @type {string} */
             const message = 'VarGate Error: ' + string;
-            switch (global['DEV_MODE']) {
+            switch (window['DEV_MODE']) {
                 case 'warn':
                     try {
                         console['error'](message);
@@ -40,7 +40,7 @@ define([
             const prefix = 'VarGate SG1 Log:';
             /** @type {Array} */
             let args = [];
-            if (global['DEBUG_MODE']) {
+            if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
                     args = message;
                 } else {
@@ -48,7 +48,7 @@ define([
                 }
                 args.unshift(prefix);
                 try {
-                    switch (global['DEBUG_MODE']) {
+                    switch (window['DEBUG_MODE']) {
                         case 'verbose':
                             console['warn'].apply(console, args);
                             break;

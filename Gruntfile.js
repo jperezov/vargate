@@ -30,7 +30,7 @@ module.exports = function(grunt) {
                     // Avoid breaking semicolons inserted by r.js
                     skipSemiColonInsertion: true,
                     wrap: {
-                        start: headerComment + "(function(global) {\n    \"use strict\";\n",
+                        start: headerComment + "(function(window) {\n    \"use strict\";\n",
                         end: "}(typeof window !== 'undefined' ? window : this));"
                     },
                     rawText: {},
@@ -82,7 +82,7 @@ module.exports = function(grunt) {
         // Convert var modules
         if (/.\/vars\//.test(path)) {
             // Don't convert `global` into a variable
-            if (/global/.test(name)) {
+            if (/window/.test(name)) {
                 contents = '';
             } else {
                 contents = contents

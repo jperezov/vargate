@@ -1,9 +1,9 @@
 /**!
- * vargate v0.9.0
+ * vargate v0.9.1
  * Copyright (c) 2018 .
  * Licensed under the MIT License.
  */
-(function(global) {
+(function(window) {
     "use strict";
 
 
@@ -22,7 +22,7 @@
             // Namespace the message
             /** @type {string} */
             const message = 'VarGate Error: ' + string;
-            switch (global['DEV_MODE']) {
+            switch (window['DEV_MODE']) {
                 case 'warn':
                     try {
                         console['error'](message);
@@ -46,7 +46,7 @@
             const prefix = 'VarGate SG1 Log:';
             /** @type {Array} */
             let args = [];
-            if (global['DEBUG_MODE']) {
+            if (window['DEBUG_MODE']) {
                 if (typeof message !== 'string' && message.length) {
                     args = message;
                 } else {
@@ -54,7 +54,7 @@
                 }
                 args.unshift(prefix);
                 try {
-                    switch (global['DEBUG_MODE']) {
+                    switch (window['DEBUG_MODE']) {
                         case 'verbose':
                             console['warn'].apply(console, args);
                             break;
@@ -556,16 +556,16 @@
     }
 
     const Gate = new VarGate('vargate');
-    if (typeof global['define'] === 'function' && global['define']['amd']) {
+    if (typeof window['define'] === 'function' && window['define']['amd']) {
         // Remain anonymous if AMD library is available
-        global['define'](function() {
+        window['define'](function() {
             return Gate;
         });
-    } else if (typeof global['module'] === 'object' && global['module']['exports']) {
+    } else if (typeof window['module'] === 'object' && window['module']['exports']) {
         // Use CommonJS / ES6 if available
-        global['module']['exports'] = Gate;
+        window['module']['exports'] = Gate;
     } else {
-        global['VarGate'] = Gate;
+        window['VarGate'] = Gate;
     }
 
 }(typeof window !== 'undefined' ? window : this));
