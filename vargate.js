@@ -1,5 +1,5 @@
 /**!
- * vargate v0.9.2
+ * vargate v0.9.3
  * Copyright (c) 2018 .
  * Licensed under the MIT License.
  */
