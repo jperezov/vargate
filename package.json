@@ -1,11 +1,17 @@
 {
   "name": "vargate",
   "private": false,
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Async Javascript library for code that should only run after data becomes available.",
-  "author": "Jonathan Perez <jonathan@bluecraneads.com>",
+  "author": {
+    "name": "Jonathan Perez",
+    "email": "jonathan@bluecraneads.com"
+  },
   "contributors": [
-    "Jonathan Perez <jonathan@bluecraneads.com>"
+    {
+      "name": "Jonathan Perez",
+      "email": "jonathan@bluecraneads.com"
+    }
   ],
   "keywords": [
     "async",
@@ -26,7 +32,8 @@
   "main": "vargate.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jperezov/vargate.git"
+    "url": "git@github.com:jperezov/vargate.git",
+    "website": "https://github.com/jperezov/vargate"
   },
   "license": "MIT"
 }

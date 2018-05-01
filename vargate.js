@@ -1,6 +1,6 @@
 /**!
- * vargate v0.9.3
- * Copyright (c) 2018 .
+ * vargate v0.9.4 <https://github.com/jperezov/vargate>
+ * Copyright (c) 2018 Jonathan Perez.
  * Licensed under the MIT License.
  */
 (function(window) {

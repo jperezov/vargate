@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     const pkg = grunt.file.readJSON('package.json');
     const year = (new Date).getFullYear();
     const headerComment = '/**!\n' +
-                        ' * <%= pkg.name %> v<%= pkg.version %>\n' +
+                        ' * <%= pkg.name %> v<%= pkg.version %> <<%= pkg.repository.website %>>\n' +
                         ' * Copyright (c) <%= year %> <%= pkg.author.name %>.\n' +
                         ' * Licensed under the <%= pkg.license %> License.\n' +
                         ' */\n';
